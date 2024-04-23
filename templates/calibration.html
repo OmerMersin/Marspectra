@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Calibracion</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</head>
+
+<body>
+
+    <div class="container mt-3">
+
+        <h1 class="text-center">Menu de calibracion</h1>
+
+        <p class="text-center">
+
+            <button onclick="newData();" class="btn btn-primary">Tomar datos</button>
+
+        </p>
+
+    </div>
+
+    <div class="container">
+
+        <p class="text-center">
+
+            <button onclick="getBlackSpectra();" class="btn btn-secondary">Guardar Como Negro</button>
+
+            <button onclick="getWhiteSpectra();" class="btn btn-secondary">Guardar Como Blanco</button>
+
+        </p>
+
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4">
+                <form id="numeroForm1" class="form-group p-3">
+					<div class="text-center">Valor actual: <span id="tiempo-integracion"></span></div>
+                    <input type="text" class="form-control" id="numeroInput1" aria-describedby="numeroHelp" placeholder="Milisegundos (100ms por defecto)">
+                    <small id="numeroHelp" class="form-text text-muted">Limites: [1.56 a 6000 ms]</small>
+                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                </form>
+            </div>
+            <div class="col-lg-4">
+                <form id="numeroForm2" class="form-group p-3">
+					<div class="text-center">Valor actual: <span id="average"></span></div>
+                    <input type="text" class="form-control" id="numeroInput2" aria-describedby="numeroHelp" placeholder="Escaneos para hacer la media">
+                    <small id="numeroHelp" class="form-text text-muted">Minimo: 1</small>
+                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                </form>
+            </div>
+            <div class="col-lg-4">
+                <form id="numeroForm3" class="form-group p-3">
+					<div class="text-center">Valor actual: <span id="boxcar"></span></div>
+                    <input type="text" class="form-control" id="numeroInput3" aria-describedby="numeroHelp" placeholder="Pixeles del Boxcar para el filtro">
+                    <small id="numeroHelp" class="form-text text-muted">Minimo: 0</small>
+                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="graph" style="width:100%; height:500px;"></div>
+
+    <p class="text-end">
+		<a href="/" class="btn btn-primary">Ir a configuracion</a>
+		<a href="/calculos" class="btn btn-primary">Ir a calculos</a>
+	</p>
+
+    <script>
+        let spectraDataUpdater;
+        let spectraDataForGraph;
+
+        function startUpdatingSpectraData() {
+            spectraDataUpdater = setInterval(() => {
+                const spectraData = {{ spectra_data|tojson }};
+
+                const wavelengthRange = spectraData.wavelength_range;
+                const spectra = spectraData.spectra;
+
+                updateGlobalVariables(wavelengthRange, spectra);
+
+                spectraDataForGraph = { wavelengthRange, spectra };
+            }, 500); 
+        console.log("Update")
+        }
+
+        function stopUpdatingSpectraData() {
+            clearInterval(spectraDataUpdater);
+        }
+
+        function updateGlobalVariables(wavelengthRange, spectra) {
+            window.wavelengthRangeGlobal = wavelengthRange;
+            window.spectraGlobal = spectra;
+        }
+
+        function showGraph() {
+            //stopUpdatingSpectraData();
+        
+            const spectraData = {{ spectra_data|tojson }};
+        
+            const wavelengthRange = spectraData.wavelength_range;
+            const spectra = spectraData.spectra;
+        
+            const trace = {
+                x: wavelengthRange,
+                y: spectra,
+                type: 'scatter'
+            };
+        
+            const layout = {
+                title: 'Datos tomados',
+                xaxis: {
+                    title: 'Wavelength Range'
+                },
+                yaxis: {
+                    title: 'Spectra'
+                }
+            };
+        
+            Plotly.newPlot('graph', [trace], layout);
+        
+            setTimeout(startUpdatingSpectraData, 1000);
+        }
+
+        function getBlackSpectra() {
+            const spectraData = {{ spectra_data|tojson }};
+
+            const wavelengthRange = spectraData.wavelength_range;
+            const blackSpectra = spectraData.spectra;
+
+            const trace = {
+                x: wavelengthRange,
+                y: blackSpectra,
+                type: 'scatter'
+            };
+
+            const layout = {
+                title: 'Negro guardado correctamente',
+                xaxis: {
+                    title: 'Wavelength Range'
+                },
+                yaxis: {
+                    title: 'Spectra'
+                }
+            };
+
+            Plotly.newPlot('graph', [trace], layout);
+
+            $.ajax({
+                url: '/update_black_spectra_data',
+                type: 'POST',
+                data: JSON.stringify(blackSpectra),
+                contentType: 'application/json',
+                success: function(response) {
+                    console.log(blackSpectra);
+                    console.log('Black spectra data updated successfully');
+                },
+                error: function(error) {
+                    console.error('Error updating black spectra data:', error);
+                }
+            });
+        }
+        
+        function newData() {
+            location.reload();
+        }
+
+        function getWhiteSpectra() {
+			const spectraData = {{ spectra_data|tojson }};
+
+            const wavelengthRange = spectraData.wavelength_range;
+            const whiteSpectra = spectraData.spectra;
+
+            const trace = {
+                x: wavelengthRange,
+                y: whiteSpectra,
+                type: 'scatter'
+            };
+
+            const layout = {
+                title: 'Blanco guardado correctamente',
+                xaxis: {
+                    title: 'Wavelength Range'
+                },
+                yaxis: {
+                    title: 'Spectra'
+                }
+            };
+
+            Plotly.newPlot('graph', [trace], layout);
+
+            $.ajax({
+                url: '/update_white_spectra_data',
+                type: 'POST',
+                data: JSON.stringify(whiteSpectra),
+                contentType: 'application/json',
+                success: function(response) {
+                    console.log(whiteSpectra);
+                    console.log('White spectra data updated successfully');
+                },
+                error: function(error) {
+                    console.error('Error updating white spectra data:', error);
+                }
+            });
+        }
+		
+		function actualizarDatosGuardadosCal() {
+            $.ajax({
+                url: '/get-datos-actualizados-cal',
+                type: 'GET',
+                success: function(response) {
+                    $('#tiempo-integracion').text(response.tiempoIntegracion);
+                    $('#boxcar').text(response.BoxcarWidth);
+                    $('#average').text(response.AverageScans);
+                    
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        }
+        
+        document.getElementById('numeroForm1').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+            let numeroIntroducido1 = document.getElementById('numeroInput1').value;
+            $.ajax({
+                url: '/new_integration_time',
+                type: 'POST',
+                data: JSON.stringify(numeroIntroducido1),
+                contentType: 'application/json',
+                success: function(response) {
+                    console.log(numeroIntroducido1);
+                    console.log('Integration time updated');
+                },
+                error: function(error) {
+                    console.error('Error updating white spectra data:', error);
+                }
+            })
+        });
+        
+        document.getElementById('numeroForm2').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+            let numeroIntroducido2 = document.getElementById('numeroInput2').value;
+            $.ajax({
+                url: '/new_average',
+                type: 'POST',
+                data: JSON.stringify(numeroIntroducido2),
+                contentType: 'application/json',
+                success: function(response) {
+                    console.log(numeroIntroducido2);
+                    console.log('Average scans updated');
+                },
+                error: function(error) {
+                    console.error('Error updating white spectra data:', error);
+                }
+            })
+        });
+        
+        document.getElementById('numeroForm3').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+            let numeroIntroducido3 = document.getElementById('numeroInput3').value;
+            $.ajax({
+                url: '/new_boxcar',
+                type: 'POST',
+                data: JSON.stringify(numeroIntroducido3),
+                contentType: 'application/json',
+                success: function(response) {
+                    console.log(numeroIntroducido3);
+                    console.log('Boxcar width updated');
+                },
+                error: function(error) {
+                    console.error('Error updating white spectra data:', error);
+                }
+            })
+        });
+		setInterval(actualizarDatosGuardadosCal, 500);
+        window.onload = showGraph;
+    </script>
+</body>
+</html>
