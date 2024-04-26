@@ -19,7 +19,7 @@ os.chdir(directorio_script)
 
 result = subprocess.run(['python', 'set_up.py'])
 
-app = Flask(__name__, template_folder="templates")
+app = Flask(__name__, template_folder="templates", static_folder = 'resources',static_url_path = '/static')
 
 logger = od_logger()
 od = OceanDirectAPI()
@@ -37,6 +37,8 @@ limpiar_csv = 0
 rango_inicial = 0
 rango_final = 0
 variables_sel_ant = []
+
+longitud_canula_cm = 30.0
     
 display_names = {
     'altitud': 'Altitud',
@@ -46,7 +48,8 @@ display_names = {
     'longitud': 'Longitud',
     'error_E': 'Error Longitud',
 	'fecha': 'Fecha',
-	'hora': 'Hora'
+	'hora': 'Hora',
+	'distancia_canula': 'Distancia al agua'
 }
 
 checkboxes = [{'name': display_names.get(key, key), 'checked': key in display_names} for key in display_names.keys()]
@@ -54,7 +57,7 @@ checkboxes = [{'name': display_names.get(key, key), 'checked': key in display_na
 while True:
 	try:
 		ser = serial.Serial(
-			port='/dev/ttyACM0',
+			port='/dev/ttyAMA4',
 			baudrate=38400,
 			timeout=1
 		)
@@ -62,6 +65,16 @@ while True:
 		break 
 	except serial.SerialException:
 		print("Esperando conexion con el puerto serie...")
+		time.sleep(5)
+
+
+while True:
+	try:
+		ser_telemetro = serial.Serial(port='/dev/ttyS0',baudrate=9600,timeout = 1)
+		print("Conexion establecida con el telemetro")
+		break 
+	except serial.SerialException:
+		print("Esperando conexion con el puerto uart, donde se encuentra conectado el telemetro")
 		time.sleep(5)
 
 try:
@@ -127,6 +140,17 @@ def gps():
     
     return latitude, longitude, altitude, error_N , error_E, error_U, fecha, hora
     
+
+def lectura_telemetro():
+	try:
+		ser_telemetro.reset_input_buffer()
+		distancia_cm = float(ser_telemetro.read(6).decode("utf-8").strip()[1:])/10
+	except Exception as e:
+		distancia_cm = "E"
+		print(f"%%%%%%%%% Lectura_telemetro funcion: {e} %%%%%%%%%%%%%%%%%")
+	return distancia_cm
+    
+    
 def lectura():
 	while True:
 		global wavelength_range, spectra_data_blanco, spectra_data_negro, spectra_data_glob, color_spec, color_gps, option1, option2, tiempo_guardado, fin, datos_guardados, integration_time_micro_anterior, integration_time_micro, rango_inicial, rango_final, average_scans, boxcar_width, boxcar_width_anterior, absor, refl
@@ -174,6 +198,14 @@ def lectura():
 						error_E = "E"
 						error_U = "E"
 						color_gps = 'red'
+					
+					try:
+						distancia_cm   =  lectura_telemetro()
+						print(f"******** Distancia canula: {distancia_cm}")
+						distancia_real =  distancia_cm - longitud_canula_cm
+					except Exception as e:
+						print(f"******** Excepcion en lectura de telemetro {e}***********")
+						distancia_real = "E"
 						
 					if (len(spectra_data_blanco) == 0 and len(spectra_data_negro) == 0):
 						with open('archivos/blanco_cal.json', 'r') as archivo_json:
@@ -194,7 +226,8 @@ def lectura():
 						'Error Longitud': error_E,
 						'Error Altitud': error_U,
 						"Fecha": fecha,
-						"Hora": hora
+						"Hora": hora,
+						"Distancia al agua": distancia_real
 					}
 					spectra_data_glob = spectra_data
 					color_spec = 'green'
@@ -218,7 +251,9 @@ def lectura():
 						print(f"Esperando {tiempo_espera} segundos...")
 						time.sleep(tiempo_espera)
 					print("------------------")
-				except:
+				except Exception as e:
+					print(f"$·$·$·$·$·$ Fallo en la lectura del sensor de la camara $·$·$·$·$·$")
+					print(e)
 					break
 
 		except:
@@ -240,6 +275,13 @@ def lectura():
 				error_U = "E"
 				color_gps = 'red'
 			
+			
+			try:
+				distancia_cm   =  lectura_telemetro()
+				distancia_real =  distancia_cm - longitud_canula_cm
+			except:
+				distancia_real = "E"
+			
 			spectra_data = {
 				'wavelength_range': lst,
 				'spectra': lst,
@@ -252,7 +294,8 @@ def lectura():
 				'Error Longitud': error_E,
 				'Error Altitud': error_U,
 				'Fecha': fecha,
-				'Hora': hora
+				'Hora': hora,
+				"Distancia": distancia_real
 			}
 			spectra_data_glob = spectra_data
 			
@@ -271,6 +314,7 @@ def lectura():
 					print(f"Esperando {tiempo_espera} segundos...")
 					time.sleep(tiempo_espera)
 				print("------------------")
+		print(f" ============== Durmiendo la lectura del sensor y gps: {tiempo_guardado} =======================")
 		time.sleep(tiempo_guardado)
 
 def contar_filas_csv(nombre_archivo):
@@ -499,8 +543,11 @@ def new_boxcar():
 @app.route('/tiempo_guardado', methods=['POST'])
 def new_saving_time():
     global tiempo_guardado
-    tiempo_guardado = float(request.get_json())
-    return jsonify({'filtered_data': 'Intervalo de tiempo actualizado correctamente'})
+    global longitud_canula_cm
+    print(f"Tiempo guardado -------------->>>>>>>>>> {request.get_json()}")
+    tiempo_guardado = float(request.get_json()[0])
+    longitud_canula_cm = float(request.get_json()[1])
+    return jsonify({'filtered_data': 'Intervalo de tiempo actualizado correctamente','valor_canula_actual':longitud_canula_cm})
     
 @app.route('/get_selected', methods=['POST'])
 def get_selected():
@@ -578,10 +625,15 @@ def select_csv():
     else:
         return jsonify({'status': 'error', 'message': 'El archivo no existe.'}), 400
 
+
+@app.route('/test_css')
+def test_css():
+	return app.send_static_file('css/bootstrap.min.css')
+
 @app.route('/')
 def index():
     global spectra_data_glob
-    return render_template('k.html', checkboxes=checkboxes, spectra_data = spectra_data_glob, desplegables = wavelength_range, num_logs = datos_guardados)
+    return render_template('k.html', checkboxes=checkboxes, spectra_data = spectra_data_glob, desplegables = wavelength_range, num_logs = datos_guardados, longitud_canula_cm = longitud_canula_cm)
 
 if __name__ == '__main__':
 	hilo_sensor = threading.Thread(target=lectura)
