@@ -59,7 +59,7 @@ while True:
 		ser = serial.Serial(
 			port='/dev/ttyAMA4',
 			baudrate=38400,
-			timeout=1
+			timeout=0.21
 		)
 		ser.close()
 		break 
@@ -70,7 +70,7 @@ while True:
 
 while True:
 	try:
-		ser_telemetro = serial.Serial(port='/dev/ttyS0',baudrate=9600,timeout = 1)
+		ser_telemetro = serial.Serial(port='/dev/ttyS0',baudrate=9600,timeout = 0.2)
 		print("Conexion establecida con el telemetro")
 		break 
 	except serial.SerialException:
@@ -112,33 +112,39 @@ absor = []
 refl = []
 
 def gps():   
-
-    global color_gps
-    try:
-        data = ser.readline().decode('utf-8').strip()
-        partes = data.split()
-        fecha = partes[0]
-        hora = partes[1]
-        latitude = partes[2]
-        longitude = partes[3]
-        altitude = partes[4]
-        error_N = partes[7]
-        error_E = partes[8]
-        error_U = partes[9]
-        color_gps = 'green'
-
-    except:
-        fecha = "E"
-        hora = "E"
-        latitude = "E"
-        longitude = "E"
-        altitude = "E"
-        error_N = "E"
-        error_E = "E"
-        error_U = "E"
-        color_gps = 'red'
-    
-    return latitude, longitude, altitude, error_N , error_E, error_U, fecha, hora
+	init = time.time()
+	global color_gps
+	try:
+		data = ser.readline().decode('utf-8').strip()
+		partes = data.split()
+		print(f"DATOS GPS: {data}")
+		print(f"TAMANIO DATOS GPS: {len(partes)}")
+		#raise Exception("DATOS GPS NO VALADIO")
+		fecha = partes[0]
+		hora = partes[1]
+		latitude = partes[2]
+		longitude = partes[3]
+		altitude = partes[4]
+		error_N = partes[7]
+		error_E = partes[8]
+		error_U = partes[9]
+		color_gps = 'green'
+		final = time.time()
+		print(f"EXITO FUNCION LECTURA GPS: TIEMPO {final -init}")
+	except Exception as e:
+		fecha = "E"
+		hora = "E"
+		latitude = "E"
+		longitude = "E"
+		altitude = "E"
+		error_N = "E"
+		error_E = "E"
+		error_U = "E"
+		color_gps = 'red'
+		final = time.time()
+		print(f"FUNCION LECTURA GPS: EXCEPTION GPS: {e}")
+		print(f"TIEMPO FUNCION LECTURA GPS: EXCEPTION GPS {final -init}")
+	return latitude, longitude, altitude, error_N , error_E, error_U, fecha, hora
     
 
 def lectura_telemetro():
@@ -147,7 +153,7 @@ def lectura_telemetro():
 		distancia_cm = float(ser_telemetro.read(6).decode("utf-8").strip()[1:])/10
 	except Exception as e:
 		distancia_cm = "E"
-		print(f"%%%%%%%%% Lectura_telemetro funcion: {e} %%%%%%%%%%%%%%%%%")
+		print(f"%%%%%%%%% Excepcion en lectura_telemetro funcion: {e} %%%%%%%%%%%%%%%%%")
 	return distancia_cm
     
     
@@ -198,14 +204,14 @@ def lectura():
 						error_E = "E"
 						error_U = "E"
 						color_gps = 'red'
-					
-					try:
-						distancia_cm   =  lectura_telemetro()
-						print(f"******** Distancia canula: {distancia_cm}")
-						distancia_real =  distancia_cm - longitud_canula_cm
-					except Exception as e:
-						print(f"******** Excepcion en lectura de telemetro {e}***********")
+						print("BUCLE WHILE: EXCEPTION GPS")
+					distancia_cm   =  lectura_telemetro()
+					print(f"******** Distancia canula: {distancia_cm}")
+					if(distancia_cm == "E"):
+						print(f"******** No se puede calculcar la distancia real de kectura ***********")
 						distancia_real = "E"
+					else:
+						distancia_real =  distancia_cm - longitud_canula_cm
 						
 					if (len(spectra_data_blanco) == 0 and len(spectra_data_negro) == 0):
 						with open('archivos/blanco_cal.json', 'r') as archivo_json:
@@ -244,7 +250,7 @@ def lectura():
 					fin = time.time()
 					duracion = fin - inicio
 					print(f"Datos guardados {datos_guardados}")
-					print(f"Duracion de la iteracion: {duracion} segundos")
+					print(f"CAM+GPS+TELE Duracion de la iteracion: {duracion} segundos")
 					
 					if duracion < tiempo_guardado:
 						tiempo_espera = tiempo_guardado - duracion
@@ -307,7 +313,7 @@ def lectura():
 				fin = time.time()
 				duracion = fin - inicio
 				print(f"Datos guardados {datos_guardados}")
-				print(f"Duracion de la iteracion: {duracion} segundos")
+				print(f"Duracion de la iteracion GPS+TELE: {duracion} segundos")
 					
 				if duracion < tiempo_guardado:
 					tiempo_espera = tiempo_guardado - duracion
@@ -364,19 +370,20 @@ def calculo(luz, ref, background):
 def update_csv_file(spectra_data, file_path):
     global first, selected_checkboxes, limpiar_csv
 
-    base_fieldnames = selected_checkboxes[:-4]  
+    base_fieldnames = selected_checkboxes[:-4]
+    print(f" % % % % % % PDATE FIELD NAMES:{base_fieldnames}")
     int_fields = ["int_" + str(wl) for wl in spectra_data['wavelength_range']]
     abs_fields = ["abs_" + str(wl) for wl in spectra_data['wavelength_range']]
     refl_fields = ["refl_" + str(wl) for wl in spectra_data['wavelength_range']]
-    
     fieldnames_for_header = base_fieldnames + int_fields + abs_fields + refl_fields
-    
     mode = 'w' if first == 0 or limpiar_csv == 1 else 'a'
-
+    print(f"Mode:{mode}-----first?:{first}-----limpiar_csv?{limpiar_csv}")
+	
     with open(file_path, mode, newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames_for_header)
 
         if first == 0 or limpiar_csv == 1:
+            print(f"Limpiando cabecera del archivo: {file_path}")
             writer.writeheader()
             wavelength_row = {}
             for key in base_fieldnames:
@@ -626,9 +633,6 @@ def select_csv():
         return jsonify({'status': 'error', 'message': 'El archivo no existe.'}), 400
 
 
-@app.route('/test_css')
-def test_css():
-	return app.send_static_file('css/bootstrap.min.css')
 
 @app.route('/')
 def index():
