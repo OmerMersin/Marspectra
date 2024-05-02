@@ -14,6 +14,10 @@ import math
 import datetime
 import os
 
+# import logging
+# log = logging.getLogger('werkzeug')
+# log.setLevel(logging.ERROR)
+
 directorio_script = os.path.dirname(os.path.abspath(__file__))
 os.chdir(directorio_script)
 
@@ -117,8 +121,8 @@ def gps():
 	try:
 		data = ser.readline().decode('utf-8').strip()
 		partes = data.split()
-		print(f"DATOS GPS: {data}")
-		print(f"TAMANIO DATOS GPS: {len(partes)}")
+		#print(f"DATOS GPS: {data}")
+		#print(f"TAMANIO DATOS GPS: {len(partes)}")
 		#raise Exception("DATOS GPS NO VALADIO")
 		fecha = partes[0]
 		hora = partes[1]
@@ -130,7 +134,7 @@ def gps():
 		error_U = partes[9]
 		color_gps = 'green'
 		final = time.time()
-		print(f"EXITO FUNCION LECTURA GPS: TIEMPO {final -init}")
+		#print(f"EXITO FUNCION LECTURA GPS: TIEMPO {final -init}")
 	except Exception as e:
 		fecha = "E"
 		hora = "E"
@@ -142,8 +146,8 @@ def gps():
 		error_U = "E"
 		color_gps = 'red'
 		final = time.time()
-		print(f"FUNCION LECTURA GPS: EXCEPTION GPS: {e}")
-		print(f"TIEMPO FUNCION LECTURA GPS: EXCEPTION GPS {final -init}")
+		#print(f"FUNCION LECTURA GPS: EXCEPTION GPS: {e}")
+		#print(f"TIEMPO FUNCION LECTURA GPS: EXCEPTION GPS {final -init}")
 	return latitude, longitude, altitude, error_N , error_E, error_U, fecha, hora
     
 
@@ -153,7 +157,7 @@ def lectura_telemetro():
 		distancia_cm = float(ser_telemetro.read(6).decode("utf-8").strip()[1:])/10
 	except Exception as e:
 		distancia_cm = "E"
-		print(f"%%%%%%%%% Excepcion en lectura_telemetro funcion: {e} %%%%%%%%%%%%%%%%%")
+		#print(f"%%%%%%%%% Excepcion en lectura_telemetro funcion: {e} %%%%%%%%%%%%%%%%%")
 	return distancia_cm
     
     
@@ -183,7 +187,7 @@ def lectura():
 					if boxcar_width_anterior != boxcar_width:
 						boxcar_width_anterior = boxcar_width
 						device.set_boxcar_width(boxcar_width_anterior)
-					print(integration_time_micro_anterior)
+					#print(f"INTEGRACION TIME ANTERIOR: {integration_time_micro_anterior}")
 					
 					spectra_aux = [device.get_formatted_spectrum() for _ in range(average_scans)]
 					spectra_array = np.array(spectra_aux)
@@ -206,9 +210,9 @@ def lectura():
 						color_gps = 'red'
 						print("BUCLE WHILE: EXCEPTION GPS")
 					distancia_cm   =  lectura_telemetro()
-					print(f"******** Distancia canula: {distancia_cm}")
+					#print(f"******** Distancia canula: {distancia_cm}")
 					if(distancia_cm == "E"):
-						print(f"******** No se puede calculcar la distancia real de kectura ***********")
+						#print(f"******** No se puede calculcar la distancia real de kectura ***********")
 						distancia_real = "E"
 					else:
 						distancia_real =  distancia_cm - longitud_canula_cm
@@ -244,22 +248,22 @@ def lectura():
 							spectra_data_t = trim_spectra_data(spectra_data, option1, option2)
 						filtered_data = {key: spectra_data_t[key] for key in selected_checkboxes if key in spectra_data_t}
 						update_csv_file(filtered_data, csv_file_path)
-						print("Guardando")
-						print(len(filtered_data))
+						#print("Guardando")
+						#print(len(filtered_data)) => El numero de checkboxes seleccionados
 
 					fin = time.time()
 					duracion = fin - inicio
-					print(f"Datos guardados {datos_guardados}")
+					#print(f"Datos guardados {datos_guardados}")
 					print(f"CAM+GPS+TELE Duracion de la iteracion: {duracion} segundos")
 					
 					if duracion < tiempo_guardado:
 						tiempo_espera = tiempo_guardado - duracion
-						print(f"Esperando {tiempo_espera} segundos...")
+						#print(f"Esperando {tiempo_espera} segundos...")
 						time.sleep(tiempo_espera)
 					print("------------------")
 				except Exception as e:
-					print(f"$·$·$·$·$·$ Fallo en la lectura del sensor de la camara $·$·$·$·$·$")
-					print(e)
+					#print(f"$·$·$·$·$·$ Fallo en la lectura del sensor de la camara $·$·$·$·$·$")
+					#print(e)
 					break
 
 		except:
@@ -327,6 +331,9 @@ def contar_filas_csv(nombre_archivo):
     with open(nombre_archivo, mode='r', encoding='utf-8') as archivo:
         lector_csv = csv.reader(archivo)
         numero_filas = sum(1 for fila in lector_csv)
+        numero_filas = numero_filas - 2
+        if(numero_filas < 0):
+             numero_filas = 0
         return numero_filas
 
 def trim_spectra_data(spectra_data, option1, option2):
@@ -371,7 +378,6 @@ def update_csv_file(spectra_data, file_path):
     global first, selected_checkboxes, limpiar_csv
 
     base_fieldnames = selected_checkboxes[:-4]
-    print(f" % % % % % % PDATE FIELD NAMES:{base_fieldnames}")
     int_fields = ["int_" + str(wl) for wl in spectra_data['wavelength_range']]
     abs_fields = ["abs_" + str(wl) for wl in spectra_data['wavelength_range']]
     refl_fields = ["refl_" + str(wl) for wl in spectra_data['wavelength_range']]
@@ -384,6 +390,7 @@ def update_csv_file(spectra_data, file_path):
 
         if first == 0 or limpiar_csv == 1:
             print(f"Limpiando cabecera del archivo: {file_path}")
+            print(f"Las cabeceras a añadir son :{fieldnames_for_header}")
             writer.writeheader()
             wavelength_row = {}
             for key in base_fieldnames:
@@ -417,19 +424,26 @@ def update_spectra_data():
 
 @app.route('/create_csv', methods=['POST'])
 def create_csv():
+    global csv_file_name
+    global datos_guardados
+    global csv_file_path
+    global limpiar_csv
     data = request.get_json()
     file_name = data.get('fileName')
     if not file_name.endswith('.csv'):
         file_name += '.csv'
     file_path = os.path.join('/doc/', file_name) 
-
     if os.path.exists(file_path):
         return jsonify({'message': 'El archivo ya existe.'}), 400
 
     try:
         with open(file_path, 'w', newline='') as file:
-            pass 
-        return jsonify({'message': f'Archivo {file_name} creado exitosamente.'})
+            pass
+        csv_file_name = file_name
+        csv_file_path = file_path
+        datos_guardados = 0
+        limpiar_csv = 1
+        return jsonify({'message': f'Archivo {file_name} creado exitosamente.','new_file_name': file_name})
     except Exception as e:
         return jsonify({'message': str(e)}), 500
 
@@ -469,7 +483,7 @@ def filter():
 def clear_csv():
 	global limpiar_csv
 	global datos_guardados
-	limpiar_csv +=1
+	limpiar_csv =1
 	datos_guardados = 0
 	return jsonify({'status': 'base borrada correctamente'})
 
@@ -589,9 +603,7 @@ def download_csv():
 
 @app.route('/get_selected_file')
 def get_selected_file():
-	global csv_file_name
-	selected_file = csv_file_name
-	return jsonify({'fileName': selected_file})
+	return jsonify({'fileName': csv_file_name})
 
 @app.route('/get-datos-actualizados')
 def get_datos_actualizados():
@@ -628,7 +640,8 @@ def select_csv():
         datos_guardados = contar_filas_csv(file_path)
         csv_file_path = file_path
         csv_file_name = file_name
-        return jsonify({'status': 'success', 'message': f'Archivo {file_name} seleccionado correctamente.'})
+        return jsonify({'status': 'success', 'message': f'Archivo {file_name} seleccionado correctamente.'
+        ,'current_selected_file': file_name})
     else:
         return jsonify({'status': 'error', 'message': 'El archivo no existe.'}), 400
 

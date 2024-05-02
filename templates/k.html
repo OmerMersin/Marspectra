@@ -514,10 +514,21 @@
 
         const contentElement11 = document.getElementById('error_U');
 
-        
+		function fetchAndUpdateSelectedFile() {
+			console.log("FetchAndUpdateSelectedFiles")
+			fetch('/get_selected_file')
+			.then(response => response.json())
+			.then(data => {
+				if (data.fileName) {
+					document.getElementById('nombreArchivoSeleccionado').textContent = data.fileName;
+					document.getElementById('csvFileSelector').value = data.fileName;
+				}
+			})
+			.catch(error => console.error('Error:', error));
+		}
 
         document.addEventListener('DOMContentLoaded', function() {
-
+			console.log("DOM CONTENT LOADED EVENT TRIGGER: List Files")
 			fetch('/list_csv_files')
 
 				.then(response => response.json())
@@ -537,7 +548,9 @@
 						selector.appendChild(option);
 
 					});
-
+					
+					fetchAndUpdateSelectedFile();
+					
 				})
 
 				.catch(error => console.error('Error al listar archivos CSV:', error));
@@ -557,7 +570,9 @@
 			newOption.textContent = fileName;
 
 			dropdown.appendChild(newOption);
-
+			
+			dropdown.value = fileName;
+			document.getElementById('nombreArchivoSeleccionado').textContent = fileName;
 		}
 
 		
@@ -641,8 +656,10 @@
 
 			.then(response => response.json())
 
-			.then(data => console.log(data))
-
+			.then(data => {
+				console.log(data)
+				document.getElementById('nombreArchivoSeleccionado').textContent = data.current_selected_file
+			})
 		});
 
 		document.getElementById('deleteButton').addEventListener('click', function() {
@@ -1406,21 +1423,10 @@
             });
 
         });
-        function fetchAndUpdateSelectedFile() {
-			fetch('/get_selected_file')
-			.then(response => response.json())
-			.then(data => {
-				if (data.fileName) {
-					document.getElementById('nombreArchivoSeleccionado').textContent = data.fileName;
-					document.getElementById('csvFileSelector').value = data.fileName;
-				}
-			})
-			.catch(error => console.error('Error:', error));
-		}
 
-		fetchAndUpdateSelectedFile();
+		//fetchAndUpdateSelectedFile();
 
-		setInterval(fetchAndUpdateSelectedFile, 500);
+		//setInterval(fetchAndUpdateSelectedFile, 500);
 
         setInterval(actualizarDatosGuardados, 500);
 
