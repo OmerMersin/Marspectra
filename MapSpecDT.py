@@ -18,6 +18,9 @@ import os
 # log = logging.getLogger('werkzeug')
 # log.setLevel(logging.ERROR)
 
+
+
+
 directorio_script = os.path.dirname(os.path.abspath(__file__))
 os.chdir(directorio_script)
 
@@ -28,21 +31,33 @@ app = Flask(__name__, template_folder="templates", static_folder = 'resources',s
 logger = od_logger()
 od = OceanDirectAPI()
 
+
+
 csv_file_name = 'ejemplo.csv'
 csv_file_path = '/doc/ejemplo.csv'
+integration_time_micro_anterior = 100000
+integration_time_micro = 100000
+tiempo_guardado = 0.5
+average_scans = 1
+boxcar_width = 0
+boxcar_width_anterior = 0
+longitud_canula_cm = 30.0
+option1 = 187.3873748779297
+option2 = 188.09348591706456
 
+	
 with open(csv_file_path, 'w', newline='') as archivo:
     writer = csv.writer(archivo)
 
-selected_checkboxes = []
+selected_checkboxes = ["Altitud", "Error Altitud", "Latitud", "Error Latitud", "Longitud", "Error Longitud", "Fecha", "Hora", "Distancia al agua", "wavelength_range", "spectra", "absorbance", "reflectance"]
 datos_guardados = 0
 first = 0
 limpiar_csv = 0
 rango_inicial = 0
 rango_final = 0
-variables_sel_ant = []
+variables_sel_ant = selected_checkboxes[:-4]
 
-longitud_canula_cm = 30.0
+
     
 display_names = {
     'altitud': 'Altitud',
@@ -56,7 +71,7 @@ display_names = {
 	'distancia_canula': 'Distancia al agua'
 }
 
-checkboxes = [{'name': display_names.get(key, key), 'checked': key in display_names} for key in display_names.keys()]
+checkboxes = []
 
 while True:
 	try:
@@ -91,30 +106,87 @@ spectra_data_glob = {}
 spectra_data_blanco = []
 spectra_data_negro = []
 
-integration_time_micro_anterior = 100000
-integration_time_micro = 100000
 
 color_gps = 'gray'
 color_spec = 'gray'
 
 wavelength_range = []
 
-option1 = 0
-option2 = 0
 
 is_recording = False
 recorded_data = []
 rango_longitudes = []
 rango_longitudes_inicializado = False
 data = ""
-tiempo_guardado = 0.5
 fin = 0
-average_scans = 1
-boxcar_width = 0
-boxcar_width_anterior = 0
 absor = []
 refl = []
 
+
+
+def carga_parametros_configuracion():
+	global csv_file_name 
+	global csv_file_path 
+	global integration_time_micro_anterior 
+	global integration_time_micro 
+	global tiempo_guardado 
+	global average_scans 
+	global boxcar_width 
+	global boxcar_width_anterior 
+	global longitud_canula_cm 
+	global option1 
+	global option2
+	global selected_checkboxes
+	global variables_sel_ant
+	try:
+		with open('archivos/parametros.json', 'r') as file:
+			params = json.load(file)
+			if(len(params) != 12):
+				return None
+			csv_file_name = params["csv_file_name"]
+			csv_file_path = params["csv_file_path"]
+			integration_time_micro_anterior = params["integration_time_micro_anterior"]
+			integration_time_micro = params["integration_time_micro"]
+			tiempo_guardado = params["tiempo_guardado"]
+			average_scans = params["average_scans"]
+			boxcar_width = params["boxcar_width"]
+			boxcar_width_anterior = params["boxcar_width_anterior"]
+			longitud_canula_cm = params["longitud_canula_cm"]
+			option1 = params["option1"]
+			option2 = params["option2"]
+			selected_checkboxes = params["selected_checkboxes"]
+			variables_sel_ant = selected_checkboxes[:-4]
+			print(f"Parametros cargados! : { len (params)}")
+	except Exception as e:
+		print("Problemas al cargar los valores de parametros.json")
+		print(e)
+
+
+		
+def guardar_parametros_configuracion():
+	try:
+		with open('archivos/parametros.json','w') as file:
+			datos = {
+			"csv_file_name":csv_file_name,
+			"csv_file_path": csv_file_path,
+			"integration_time_micro_anterior": integration_time_micro_anterior,
+			"integration_time_micro": integration_time_micro,
+			"tiempo_guardado": tiempo_guardado,
+			"average_scans": average_scans,
+			"boxcar_width":boxcar_width,
+			"boxcar_width_anterior": boxcar_width_anterior,
+			"longitud_canula_cm": longitud_canula_cm,
+			"option1":option1,
+			"option2": option2,
+			"selected_checkboxes": selected_checkboxes,
+			}
+			json.dump(datos,file, indent = 4)
+			print(f"Parametros guardados en parametros.json!!! : { len (datos)}")
+		return "Exito al guardar la configuracion de parametros", True
+	except Exception as e:
+		print(f"Fallo al escribir en el archivo parametros.json {e}")	
+		return "Fallo al guardar los parametros de configuracion: {0}".format(str(e)), False
+		
 def gps():   
 	init = time.time()
 	global color_gps
@@ -175,8 +247,8 @@ def lectura():
 			device.set_nonlinearity_correction_usage(False)
 			device.set_integration_time(integration_time_micro_anterior)
 			wavelength_range = device.get_wavelengths()
-
 			while True:
+				print(f"Los selected checkboxes son: {selected_checkboxes}")
 				inicio = time.time()
 				try:
 					absor = []
@@ -187,13 +259,14 @@ def lectura():
 					if boxcar_width_anterior != boxcar_width:
 						boxcar_width_anterior = boxcar_width
 						device.set_boxcar_width(boxcar_width_anterior)
-					#print(f"INTEGRACION TIME ANTERIOR: {integration_time_micro_anterior}")
+					print(f"INTEGRACION TIME ANTERIOR: {integration_time_micro_anterior}")
+					print(f"BOXCAR WIDTH ANTERIOR: {boxcar_width_anterior}")
 					
 					spectra_aux = [device.get_formatted_spectrum() for _ in range(average_scans)]
 					spectra_array = np.array(spectra_aux)
 					spectra = np.mean(spectra_array, axis=0)
 					spectra = spectra.tolist()
-					
+					print(f"Wave: {len(wavelength_range)}")
 					try:
 						ser.open()
 						latitude, longitude, altitude, error_N, error_E, error_U, fecha, hora = gps()
@@ -262,11 +335,13 @@ def lectura():
 						time.sleep(tiempo_espera)
 					print("------------------")
 				except Exception as e:
-					#print(f"$·$·$·$·$·$ Fallo en la lectura del sensor de la camara $·$·$·$·$·$")
-					#print(e)
+					print(f"$·$·$·$·$·$ 1 Fallo en la lectura del sensor de la camara 1 $·$·$·$·$·$")
+					print(e)
 					break
 
-		except:
+		except Exception as e:
+			print(f"$·$·$·$·$·$ 2 Fallo en la lectura del sensor de la camara 2 $·$·$·$·$·$")
+			print(e)
 			inicio = time.time()
 			color_spec = 'red'
 			lst = [0]
@@ -331,6 +406,7 @@ def contar_filas_csv(nombre_archivo):
     with open(nombre_archivo, mode='r', encoding='utf-8') as archivo:
         lector_csv = csv.reader(archivo)
         numero_filas = sum(1 for fila in lector_csv)
+        print(f"Numero de filas orignal, incluido cabeceras: {numero_filas}")
         numero_filas = numero_filas - 2
         if(numero_filas < 0):
              numero_filas = 0
@@ -382,13 +458,13 @@ def update_csv_file(spectra_data, file_path):
     abs_fields = ["abs_" + str(wl) for wl in spectra_data['wavelength_range']]
     refl_fields = ["refl_" + str(wl) for wl in spectra_data['wavelength_range']]
     fieldnames_for_header = base_fieldnames + int_fields + abs_fields + refl_fields
-    mode = 'w' if first == 0 or limpiar_csv == 1 else 'a'
+    mode = 'w' if contar_filas_csv(file_path) == 0 or limpiar_csv == 1 else 'a'
     print(f"Mode:{mode}-----first?:{first}-----limpiar_csv?{limpiar_csv}")
 	
     with open(file_path, mode, newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames_for_header)
 
-        if first == 0 or limpiar_csv == 1:
+        if mode == 'w' or limpiar_csv == 1:
             print(f"Limpiando cabecera del archivo: {file_path}")
             print(f"Las cabeceras a añadir son :{fieldnames_for_header}")
             writer.writeheader()
@@ -442,7 +518,7 @@ def create_csv():
         csv_file_name = file_name
         csv_file_path = file_path
         datos_guardados = 0
-        limpiar_csv = 1
+        #limpiar_csv = 1
         return jsonify({'message': f'Archivo {file_name} creado exitosamente.','new_file_name': file_name})
     except Exception as e:
         return jsonify({'message': str(e)}), 500
@@ -472,6 +548,7 @@ def filter():
     global rango_final
     option1 = float(request.form.get('option1'))
     option2 = float(request.form.get('option2'))
+    print(f"Option 1: {option1} -- Option2: {option2}")
     if option1 > option2:
         return jsonify({'error': 'Selecciona un rango válido'}), 400
     else:
@@ -588,6 +665,7 @@ def get_selected():
 def start_recording():
     global is_recording
     is_recording = not is_recording
+    guardar_parametros_configuracion()
     return jsonify({'status': 'ok'})
 
 @app.route('/get_recording_status')
@@ -601,6 +679,45 @@ def download_csv():
     except Exception as e:
         return str(e)
 
+@app.route('/save_configuration', methods=['POST'])
+def save_parameters_configuration():
+	message,success = guardar_parametros_configuracion()
+	if success:
+		return jsonify({'message': message}), 200
+	else:
+		return jsonify({'error': message}), 500  
+
+
+        
+@app.route('/default_values', methods=['POST'])
+def default_values():
+	global integration_time_micro_anterior 
+	global integration_time_micro 
+	global tiempo_guardado 
+	global average_scans 
+	global boxcar_width 
+	global boxcar_width_anterior 
+	global longitud_canula_cm 
+	global option1
+	global option2
+	integration_time_micro_anterior = 100000
+	integration_time_micro = 100000
+	tiempo_guardado = 2
+	average_scans = 1
+	boxcar_width = 0
+	boxcar_width_anterior = 0
+	longitud_canula_cm = 30.0
+	option1 = 187.3873748779297
+	option2 = 188.09348591706456
+	default_values = {
+		'integration_time': integration_time_micro/1000,
+		'tiempo_guardado': tiempo_guardado,
+		'rango_inicial': option1,
+		'rango_final': option2,
+		'longitud_canula_cm': longitud_canula_cm
+	}
+	return jsonify({'message': 'Restablecido a valores por defecto', 'default_values': default_values}), 200
+
 @app.route('/get_selected_file')
 def get_selected_file():
 	return jsonify({'fileName': csv_file_name})
@@ -613,7 +730,7 @@ def get_datos_actualizados():
     global rango_final
     global variables_sel_ant
     global integration_time_micro
-    return jsonify({'datosGuardados': datos_guardados, 'tiempoIntegracion': integration_time_micro/1000, 'tiempoGuardado': tiempo_guardado, 'rangoi': rango_inicial, 'rangof': rango_final, 'var_sel': variables_sel_ant})
+    return jsonify({'datosGuardados': datos_guardados, 'tiempoIntegracion': integration_time_micro/1000, 'tiempoGuardado': tiempo_guardado, 'rangoi': option1, 'rangof': option2, 'var_sel': variables_sel_ant})
 
 @app.route('/get-datos-actualizados-cal')
 def get_datos_actualizados_cal():
@@ -650,9 +767,13 @@ def select_csv():
 @app.route('/')
 def index():
     global spectra_data_glob
-    return render_template('k.html', checkboxes=checkboxes, spectra_data = spectra_data_glob, desplegables = wavelength_range, num_logs = datos_guardados, longitud_canula_cm = longitud_canula_cm)
+    return render_template('k.html', checkboxes=checkboxes, spectra_data = spectra_data_glob, desplegables = wavelength_range, 
+    num_logs = datos_guardados, longitud_canula_cm = longitud_canula_cm,option1 = option1,option2 = option2)
 
 if __name__ == '__main__':
+	carga_parametros_configuracion()
+	datos_guardados = contar_filas_csv(csv_file_path)
+	checkboxes = [{'name': display_names.get(key, key), 'checked': display_names[key] in variables_sel_ant} for key in display_names.keys()]
 	hilo_sensor = threading.Thread(target=lectura)
 	hilo_sensor.daemon = True 
 	hilo_sensor.start()
