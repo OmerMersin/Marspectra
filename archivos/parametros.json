@@ -3,11 +3,11 @@
     "csv_file_path": "/doc/sieteabril.csv",
     "integration_time_micro_anterior": 105000,
     "integration_time_micro": 105000,
-    "tiempo_guardado": 3.0,
+    "tiempo_guardado": 1.0,
     "average_scans": 2,
     "boxcar_width": 3,
     "boxcar_width_anterior": 3,
-    "longitud_canula_cm": 40.0,
+    "longitud_canula_cm": 50.0,
     "option1": 187.3873748779297,
     "option2": 188.79931168745517,
     "selected_checkboxes": [

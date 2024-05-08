@@ -13,10 +13,11 @@ from queue import Queue
 import math
 import datetime
 import os
+import RPi.GPIO as GPIO
 
-# import logging
-# log = logging.getLogger('werkzeug')
-# log.setLevel(logging.ERROR)
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 
 
@@ -89,7 +90,7 @@ while True:
 
 while True:
 	try:
-		ser_telemetro = serial.Serial(port='/dev/ttyS0',baudrate=9600,timeout = 0.2)
+		ser_telemetro = serial.Serial(port='/dev/ttyS0',baudrate=9600,timeout = 0.1)
 		print("Conexion establecida con el telemetro")
 		break 
 	except serial.SerialException:
@@ -122,6 +123,61 @@ fin = 0
 absor = []
 refl = []
 
+gpio_salida_led     = 5
+gpio_entrada_botton = 21
+
+
+
+
+def buttton_pressed_interruption(gpio_number):
+	global is_recording
+	print(f"Iniciando grabacion por interrupcion del gpio {gpio_number}")
+	is_recording = not is_recording
+
+	
+
+def setup_gpio():
+	GPIO.setwarnings(False)
+	GPIO.setmode(GPIO.BCM)
+	GPIO.setup(gpio_salida_led,GPIO.OUT,initial = GPIO.LOW)
+	GPIO.setup(gpio_entrada_botton,GPIO.IN, pull_up_down=GPIO.PUD_UP)
+	#GPIO.add_event_detect(gpio_entrada_botton,GPIO.FALLING,buttton_pressed_interruption,bouncetime=1000)
+
+
+def reading_button():
+	global is_recording
+	while True:
+		try:
+			lectura = GPIO.input(gpio_entrada_botton)
+			if(lectura == 0):
+				is_recording = not is_recording
+				time.sleep(5)
+				continue
+			time.sleep(0.1)
+		except Exception as es:
+			print(f"Se ha producido un fallo de lectura del boton: {e}")
+
+
+
+start_led_blinking = False
+def blinking_led():
+	state_led = False
+	while True:
+		try:
+			if(start_led_blinking):
+				state_led = not state_led
+				GPIO.output(gpio_salida_led,state_led)
+				time.sleep(0.2)
+				state_led = not state
+				GPIO.output(gpio_salida_led,state_led)
+				time.sleep(0.2)
+			else:
+				state_led = False
+				GPIO.output(gpio_salida_led,GPIO.LOW)
+		except Exception as e:
+			print(f"Se ha producido un fallo en blinking led: {e}")
+
+		
 
 
 def carga_parametros_configuracion():
@@ -235,7 +291,7 @@ def lectura_telemetro():
     
 def lectura():
 	while True:
-		global wavelength_range, spectra_data_blanco, spectra_data_negro, spectra_data_glob, color_spec, color_gps, option1, option2, tiempo_guardado, fin, datos_guardados, integration_time_micro_anterior, integration_time_micro, rango_inicial, rango_final, average_scans, boxcar_width, boxcar_width_anterior, absor, refl
+		global start_led_blinking, wavelength_range, spectra_data_blanco, spectra_data_negro, spectra_data_glob, color_spec, color_gps, option1, option2, tiempo_guardado, fin, datos_guardados, integration_time_micro_anterior, integration_time_micro, rango_inicial, rango_final, average_scans, boxcar_width, boxcar_width_anterior, absor, refl
 		device_count = od.find_usb_devices()
 		try:
 			device_ids = od.get_device_ids()
@@ -248,7 +304,7 @@ def lectura():
 			device.set_integration_time(integration_time_micro_anterior)
 			wavelength_range = device.get_wavelengths()
 			while True:
-				print(f"Los selected checkboxes son: {selected_checkboxes}")
+				#print(f"Los selected checkboxes son: {selected_checkboxes}")
 				inicio = time.time()
 				try:
 					absor = []
@@ -259,14 +315,14 @@ def lectura():
 					if boxcar_width_anterior != boxcar_width:
 						boxcar_width_anterior = boxcar_width
 						device.set_boxcar_width(boxcar_width_anterior)
-					print(f"INTEGRACION TIME ANTERIOR: {integration_time_micro_anterior}")
-					print(f"BOXCAR WIDTH ANTERIOR: {boxcar_width_anterior}")
+					#print(f"INTEGRACION TIME ANTERIOR: {integration_time_micro_anterior}")
+					#print(f"BOXCAR WIDTH ANTERIOR: {boxcar_width_anterior}")
 					
 					spectra_aux = [device.get_formatted_spectrum() for _ in range(average_scans)]
 					spectra_array = np.array(spectra_aux)
 					spectra = np.mean(spectra_array, axis=0)
 					spectra = spectra.tolist()
-					print(f"Wave: {len(wavelength_range)}")
+					#print(f"Wave: {len(wavelength_range)}")
 					try:
 						ser.open()
 						latitude, longitude, altitude, error_N, error_E, error_U, fecha, hora = gps()
@@ -289,7 +345,6 @@ def lectura():
 						distancia_real = "E"
 					else:
 						distancia_real =  distancia_cm - longitud_canula_cm
-						
 					if (len(spectra_data_blanco) == 0 and len(spectra_data_negro) == 0):
 						with open('archivos/blanco_cal.json', 'r') as archivo_json:
 							spectra_data_blanco = json.load(archivo_json)
@@ -316,6 +371,7 @@ def lectura():
 					color_spec = 'green'
 
 					if is_recording:
+						start_led_blinking = True
 						datos_guardados += 1
 						if option1 > 1 and option2 > 1:
 							spectra_data_t = trim_spectra_data(spectra_data, option1, option2)
@@ -323,7 +379,8 @@ def lectura():
 						update_csv_file(filtered_data, csv_file_path)
 						#print("Guardando")
 						#print(len(filtered_data)) => El numero de checkboxes seleccionados
-
+					else:
+						start_led_blinking = False
 					fin = time.time()
 					duracion = fin - inicio
 					#print(f"Datos guardados {datos_guardados}")
@@ -385,6 +442,7 @@ def lectura():
 			spectra_data_glob = spectra_data
 			
 			if is_recording:
+				start_led_blinking = True
 				datos_guardados += 1
 				update_csv_file(spectra_data, csv_file_path)
 				print("Guardando")
@@ -398,7 +456,9 @@ def lectura():
 					tiempo_espera = tiempo_guardado - duracion
 					print(f"Esperando {tiempo_espera} segundos...")
 					time.sleep(tiempo_espera)
-				print("------------------")
+			else:
+				start_led_blinking = False
+			print("------------------")
 		print(f" ============== Durmiendo la lectura del sensor y gps: {tiempo_guardado} =======================")
 		time.sleep(tiempo_guardado)
 
@@ -777,4 +837,11 @@ if __name__ == '__main__':
 	hilo_sensor = threading.Thread(target=lectura)
 	hilo_sensor.daemon = True 
 	hilo_sensor.start()
+	setup_gpio()
+	hilo_boton = threading.Thread(target =  reading_button)
+	hilo_boton.daemon = True
+	hilo_boton.start()
+	hilo_led = threading.Thread(target =  blinking_led)
+	hilo_led.daemon = True
+	hilo_led.start()
 	app.run(debug=True, host='0.0.0.0', use_reloader=False)
