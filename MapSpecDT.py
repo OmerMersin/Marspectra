@@ -15,9 +15,9 @@ import datetime
 import os
 import RPi.GPIO as GPIO
 
-import logging
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+# ~ import logging
+# ~ log = logging.getLogger('werkzeug')
+# ~ log.setLevel(logging.ERROR)
 
 
 
@@ -79,7 +79,7 @@ while True:
 		ser = serial.Serial(
 			port='/dev/ttyAMA4',
 			baudrate=38400,
-			timeout=0.21
+			timeout=0.2
 		)
 		ser.close()
 		break 
@@ -154,6 +154,8 @@ def reading_button():
 			lectura = GPIO.input(gpio_entrada_botton)
 			if(lectura == 0):
 				is_recording = not is_recording
+				if(is_recording):
+					guardar_parametros_configuracion()
 				time.sleep(5)
 				continue
 			time.sleep(0.15)
@@ -718,15 +720,16 @@ def new_saving_time():
     
 @app.route('/get_selected', methods=['POST'])
 def get_selected():
-    global selected_checkboxes, variables_sel_ant
+    global selected_checkboxes, variables_sel_ant,checkboxes
     selected_checkboxes = request.form.getlist('names')
-    selected_checkboxes.pop(0)
+    print(f"Los selected checkboxes son: {selected_checkboxes}")
+    #selected_checkboxes.pop(0)
     selected_checkboxes.append('wavelength_range')
     selected_checkboxes.append('spectra')
     selected_checkboxes.append('absorbance')
     selected_checkboxes.append('reflectance')
     variables_sel_ant = selected_checkboxes[:-4]
-            
+    checkboxes = [{'name': display_names.get(key, key), 'checked': display_names[key] in variables_sel_ant} for key in display_names.keys()]
     return jsonify({'message': 'Filter applied successfully', 'filtered_data': 'Variables seleccionadas actualizadas correctamente'})
 
 

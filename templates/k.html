@@ -116,7 +116,9 @@
 
                 <form id="checkbox-form">
 
+<!--
                     <input type="hidden" name="names" value="">
+-->
 
                     {% for checkbox in checkboxes %}
 
@@ -1291,14 +1293,16 @@
                 console.log(data.data);
 
                 var filteredDataElement = document.getElementById('filtered-data');
+                
+                drawServerReceivedMessage('Rango de longitudes de onda actualizado');
 
-				filteredDataElement.innerHTML = "Rango de longitudes de onda actualizado"
+				//~ filteredDataElement.innerHTML = "Rango de longitudes de onda actualizado"
 
-				setTimeout(function() {
+				//~ setTimeout(function() {
 
-					filteredDataElement.innerHTML = '';
+					//~ filteredDataElement.innerHTML = '';
 
-				}, 3000);
+				//~ }, 3000);
 
             })
 
@@ -1331,13 +1335,15 @@
 
 						//$('#filtered-data').text(response.message);
 
-						$('#filtered-data').text(response.filtered_data);
+						//~ $('#filtered-data').text(response.filtered_data);
 
-						setTimeout(function() {
+						//~ setTimeout(function() {
 
-							$('#filtered-data').text('');
+							//~ $('#filtered-data').text('');
 
-						}, 3000);
+						//~ }, 3000);
+						
+						drawServerReceivedMessage(response.filtered_data);
 
 					},
 
