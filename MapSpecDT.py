@@ -15,9 +15,9 @@ import datetime
 import os
 import RPi.GPIO as GPIO
 
-import logging
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+# ~ import logging
+# ~ log = logging.getLogger('werkzeug')
+# ~ log.setLevel(logging.ERROR)
 
 
 
@@ -123,9 +123,10 @@ fin = 0
 absor = []
 refl = []
 
-gpio_salida_led     = 5
+gpio_led_grabacion     = 5
 gpio_entrada_botton = 21
-
+gpio_led_gps    = 17
+gpio_led_camara = 27
 
 
 
@@ -139,7 +140,9 @@ def buttton_pressed_interruption(gpio_number):
 def setup_gpio():
 	GPIO.setwarnings(False)
 	GPIO.setmode(GPIO.BCM)
-	GPIO.setup(gpio_salida_led,GPIO.OUT,initial = GPIO.LOW)
+	GPIO.setup(gpio_led_grabacion,GPIO.OUT,initial = GPIO.LOW)
+	GPIO.setup(gpio_led_camara,GPIO.OUT,initial = GPIO.LOW)
+	GPIO.setup(gpio_led_gps,GPIO.OUT,initial = GPIO.LOW)
 	GPIO.setup(gpio_entrada_botton,GPIO.IN, pull_up_down=GPIO.PUD_UP)
 	#GPIO.add_event_detect(gpio_entrada_botton,GPIO.FALLING,buttton_pressed_interruption,bouncetime=1000)
 
@@ -166,14 +169,14 @@ def blinking_led():
 		try:
 			if(start_led_blinking):
 				state_led = not state_led
-				GPIO.output(gpio_salida_led,state_led)
+				GPIO.output(gpio_led_grabacion,state_led)
 				time.sleep(0.2)
 				state_led = not state
-				GPIO.output(gpio_salida_led,state_led)
+				GPIO.output(gpio_led_grabacion,state_led)
 				time.sleep(0.2)
 			else:
 				state_led = False
-				GPIO.output(gpio_salida_led,GPIO.LOW)
+				GPIO.output(gpio_led_grabacion,GPIO.LOW)
 		except Exception as e:
 			print(f"Se ha producido un fallo en blinking led: {e}")
 
@@ -262,6 +265,7 @@ def gps():
 		error_U = partes[9]
 		color_gps = 'green'
 		final = time.time()
+		GPIO.output(gpio_led_gps,True)
 		#print(f"EXITO FUNCION LECTURA GPS: TIEMPO {final -init}")
 	except Exception as e:
 		fecha = "E"
@@ -274,6 +278,8 @@ def gps():
 		error_U = "E"
 		color_gps = 'red'
 		final = time.time()
+		GPIO.output(gpio_led_gps,False)
+
 		#print(f"FUNCION LECTURA GPS: EXCEPTION GPS: {e}")
 		#print(f"TIEMPO FUNCION LECTURA GPS: EXCEPTION GPS {final -init}")
 	return latitude, longitude, altitude, error_N , error_E, error_U, fecha, hora
@@ -323,6 +329,7 @@ def lectura():
 					spectra = np.mean(spectra_array, axis=0)
 					spectra = spectra.tolist()
 					#print(f"Wave: {len(wavelength_range)}")
+					GPIO.output(gpio_led_camara,True)
 					try:
 						ser.open()
 						latitude, longitude, altitude, error_N, error_E, error_U, fecha, hora = gps()
@@ -398,6 +405,7 @@ def lectura():
 
 		except Exception as e:
 			print(f"$·$·$·$·$·$ 2 Fallo en la lectura del sensor de la camara 2 $·$·$·$·$·$")
+			GPIO.output(gpio_led_camara,False)
 			print(e)
 			inicio = time.time()
 			color_spec = 'red'
@@ -831,6 +839,7 @@ def index():
     num_logs = datos_guardados, longitud_canula_cm = longitud_canula_cm,option1 = option1,option2 = option2)
 
 if __name__ == '__main__':
+	print("EJECUTANDO MAINNNNN")
 	carga_parametros_configuracion()
 	datos_guardados = contar_filas_csv(csv_file_path)
 	checkboxes = [{'name': display_names.get(key, key), 'checked': display_names[key] in variables_sel_ant} for key in display_names.keys()]
