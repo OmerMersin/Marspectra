@@ -707,6 +707,7 @@ def new_boxcar():
     global boxcar_width
     boxcar_width_aux = request.get_json()
     boxcar_width = int(boxcar_width_aux)
+    print(f"El boxcar ahora es: {boxcar_width}")
     return 'Boxcar width updated'
     
 @app.route('/tiempo_guardado', methods=['POST'])
@@ -716,7 +717,7 @@ def new_saving_time():
     print(f"Tiempo guardado -------------->>>>>>>>>> {request.get_json()}")
     tiempo_guardado = float(request.get_json()[0])
     longitud_canula_cm = float(request.get_json()[1])
-    return jsonify({'filtered_data': 'Intervalo de tiempo actualizado correctamente','valor_canula_actual':longitud_canula_cm})
+    return jsonify({'filtered_data': 'Intervalo de tiempo y distancia de la canula actualizados correctamente','valor_canula_actual':longitud_canula_cm})
     
 @app.route('/get_selected', methods=['POST'])
 def get_selected():
@@ -843,7 +844,6 @@ def index():
     num_logs = datos_guardados, longitud_canula_cm = longitud_canula_cm,option1 = option1,option2 = option2)
 
 if __name__ == '__main__':
-	print("EJECUTANDO MAINNNNN")
 	carga_parametros_configuracion()
 	datos_guardados = contar_filas_csv(csv_file_path)
 	checkboxes = [{'name': display_names.get(key, key), 'checked': display_names[key] in variables_sel_ant} for key in display_names.keys()]

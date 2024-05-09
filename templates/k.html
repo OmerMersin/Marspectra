@@ -837,16 +837,7 @@
 			let distancia_canula_value = distancia_canula_input.value;
 			if(!numeroIntroducido || !distancia_canula_value || isNaN(numeroIntroducido) || isNaN(distancia_canula_value)
 			|| numeroIntroducido < 0.2 || distancia_canula_value < 30){
-					const div_aviso = document.getElementById('filtered-data');
-					div_aviso.classList.add("alert");
-					div_aviso.classList.add("alert-warning")
-					div_aviso.textContent  = "Debe introducir un valor correcto para el intervarlo y la distancia";
-					
-					setTimeout(function() {
-						div_aviso.textContent  = "";
-						div_aviso.classList.remove("alert");
-						div_aviso.classList.remove("alert-warning")
-					}, 3000);
+					drawServerReceivedMessage("Debe introducir un valor correcto para el intervarlo y la distancia",true);
 					return;
 			} 
 			const datos = [numeroIntroducido,distancia_canula_value]
@@ -857,16 +848,8 @@
 			})
 			.then(response => response.json())
 			.then(response => {
-				const div_aviso = document.getElementById('filtered-data');
-				div_aviso.textContent = JSON.stringify(response.filtered_data, null, 2);
-				span_longitud_canula_actual.textContent = JSON.stringify(response.valor_canula_actual, null, 2);
-				div_aviso.classList.add("alert");
-				div_aviso.classList.add("alert-success");
-				setTimeout(function() {
-						div_aviso.textContent  = "";
-						div_aviso.classList.remove("alert");
-						div_aviso.classList.remove("alert-success");
-				}, 3000);
+				drawServerReceivedMessage(response.filtered_data);
+				span_longitud_canula_actual.textContent = response.valor_canula_actual
 			})
 			.catch(error => {console.error('Error updating white spectra data:', error);})
 			
@@ -1493,9 +1476,9 @@
 
 		//fetchAndUpdateSelectedFile();
 
-		//setInterval(fetchAndUpdateSelectedFile, 500);
+		setInterval(fetchAndUpdateSelectedFile, 700);
 
-        setInterval(actualizarDatosGuardados, 500);
+        setInterval(actualizarDatosGuardados, 700);
 
         setInterval(updateColor, 500);
 

@@ -15,6 +15,13 @@
     <script src="/static/js/plotly-latest.min.js"></script>
 
     <script src="/static/js/jquery-3.6.0.min.js"></script>
+    
+    <style>
+    .isInvalidInput{
+	  background-color: #ffdddd;
+	}
+    
+    </style>
 
 </head>
 
@@ -234,9 +241,31 @@
             });
         }
         
+		function isValidNumber(input_value){
+			if(!input_value || isNaN(input_value)){
+				return false
+			}
+			return true
+		}
+		
+        function modifyInvalidClass(input_element,add = true){
+			if(add){
+				input_element.classList.add("isInvalidInput");
+				return;
+			}				
+			input_element.classList.remove("isInvalidInput");
+		}
+        
         document.getElementById('numeroForm1').addEventListener('submit', function(event) {
             event.preventDefault(); 
-            let numeroIntroducido1 = document.getElementById('numeroInput1').value;
+            const input1 = document.getElementById('numeroInput1');
+            let numeroIntroducido1 = input1.value;
+            console.log(numeroIntroducido1);
+            if(!isValidNumber(numeroIntroducido1) || numeroIntroducido1 < 1.56 || numeroIntroducido1 > 6000){
+				console.log("NO es un numero valido ");
+				modifyInvalidClass(input1);
+				return ;
+			}
             $.ajax({
                 url: '/new_integration_time',
                 type: 'POST',
@@ -245,6 +274,7 @@
                 success: function(response) {
                     console.log(numeroIntroducido1);
                     console.log('Integration time updated');
+                    modifyInvalidClass(input1,false);
                 },
                 error: function(error) {
                     console.error('Error updating white spectra data:', error);
@@ -253,8 +283,14 @@
         });
         
         document.getElementById('numeroForm2').addEventListener('submit', function(event) {
-            event.preventDefault(); 
-            let numeroIntroducido2 = document.getElementById('numeroInput2').value;
+            event.preventDefault();
+            const input2 = document.getElementById('numeroInput2');
+            let numeroIntroducido2 = input2.value;
+			if(!isValidNumber(numeroIntroducido2)  || numeroIntroducido2 < 1){
+				console.log("NO es un numero valido ");
+				modifyInvalidClass(input2);
+				return ;
+			}
             $.ajax({
                 url: '/new_average',
                 type: 'POST',
@@ -262,6 +298,7 @@
                 contentType: 'application/json',
                 success: function(response) {
                     console.log(numeroIntroducido2);
+                    modifyInvalidClass(input2,false);
                     console.log('Average scans updated');
                 },
                 error: function(error) {
@@ -272,7 +309,13 @@
         
         document.getElementById('numeroForm3').addEventListener('submit', function(event) {
             event.preventDefault(); 
-            let numeroIntroducido3 = document.getElementById('numeroInput3').value;
+            const input3 = document.getElementById('numeroInput3');
+            let numeroIntroducido3 = input3.value;
+            if(!isValidNumber(numeroIntroducido3) || numeroIntroducido3 < 0){
+				console.log("NO es un numero valido ");
+				modifyInvalidClass(input3);
+				return ;
+			}
             $.ajax({
                 url: '/new_boxcar',
                 type: 'POST',
@@ -280,6 +323,7 @@
                 contentType: 'application/json',
                 success: function(response) {
                     console.log(numeroIntroducido3);
+                    modifyInvalidClass(input3,false);
                     console.log('Boxcar width updated');
                 },
                 error: function(error) {
