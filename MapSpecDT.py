@@ -15,9 +15,9 @@ import datetime
 import os
 import RPi.GPIO as GPIO
 
-# ~ import logging
-# ~ log = logging.getLogger('werkzeug')
-# ~ log.setLevel(logging.ERROR)
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 
 
@@ -156,7 +156,7 @@ def reading_button():
 				is_recording = not is_recording
 				time.sleep(5)
 				continue
-			time.sleep(0.1)
+			time.sleep(0.15)
 		except Exception as es:
 			print(f"Se ha producido un fallo de lectura del boton: {e}")
 
@@ -171,12 +171,13 @@ def blinking_led():
 				state_led = not state_led
 				GPIO.output(gpio_led_grabacion,state_led)
 				time.sleep(0.2)
-				state_led = not state
+				state_led = not state_led
 				GPIO.output(gpio_led_grabacion,state_led)
 				time.sleep(0.2)
 			else:
 				state_led = False
 				GPIO.output(gpio_led_grabacion,GPIO.LOW)
+				time.sleep(0.2)
 		except Exception as e:
 			print(f"Se ha producido un fallo en blinking led: {e}")
 
