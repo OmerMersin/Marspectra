@@ -227,7 +227,7 @@
 				
 				<div class="text-center mb-3">
 					
-					<button id="save-configuration-button"  class="btn btn-primary mx-auto d-block">Guardar configuracion</button>
+					<button id="save-configuration-button"  class="btn btn-primary mx-auto d-block">Guardar configuración</button>
 				
 				</div>
 
@@ -721,13 +721,13 @@
 		document.getElementById('save-configuration-button').addEventListener('click',function(){
 			fetch('/save_configuration',{method:'POST'})
 			.then(response => {
-				if(response.status != 200) throw new Error('Error al intentar guardar los parametros de configuracion')
+				if(response.status != 200) throw new Error('Error al intentar guardar los parámetros de configuración')
 				return response.json()
 				
 			}).then(response => drawServerReceivedMessage(response.message))
 			.catch(error => {
 				console.error(error);
-				drawServerReceivedMessage('Error al intentar guardar los parametros de configuracion',true);
+				drawServerReceivedMessage('Error al intentar guardar los parámetros de configuración',true);
 			})
 		});
 		

@@ -244,10 +244,10 @@ def guardar_parametros_configuracion():
 			}
 			json.dump(datos,file, indent = 4)
 			print(f"Parametros guardados en parametros.json!!! : { len (datos)}")
-		return "Exito al guardar la configuracion de parametros", True
+		return "Éxito al guardar la configuración de parámetros", True
 	except Exception as e:
 		print(f"Fallo al escribir en el archivo parametros.json {e}")	
-		return "Fallo al guardar los parametros de configuracion: {0}".format(str(e)), False
+		return "Fallo al guardar los párametros de configuración: {0}".format(str(e)), False
 		
 def gps():   
 	init = time.time()
@@ -717,7 +717,7 @@ def new_saving_time():
     print(f"Tiempo guardado -------------->>>>>>>>>> {request.get_json()}")
     tiempo_guardado = float(request.get_json()[0])
     longitud_canula_cm = float(request.get_json()[1])
-    return jsonify({'filtered_data': 'Intervalo de tiempo y distancia de la canula actualizados correctamente','valor_canula_actual':longitud_canula_cm})
+    return jsonify({'filtered_data': 'Intervalo de tiempo y distancia de la cánula actualizados correctamente','valor_canula_actual':longitud_canula_cm})
     
 @app.route('/get_selected', methods=['POST'])
 def get_selected():
