@@ -164,12 +164,11 @@ def reading_button():
 
 
 
-start_led_blinking = False
 def blinking_led():
 	state_led = False
 	while True:
 		try:
-			if(start_led_blinking):
+			if(is_recording):
 				state_led = not state_led
 				GPIO.output(gpio_led_grabacion,state_led)
 				time.sleep(0.2)
@@ -201,7 +200,7 @@ def carga_parametros_configuracion():
 	global selected_checkboxes
 	global variables_sel_ant
 	try:
-		with open('archivos/parametros.json', 'r') as file:
+		with open('/home/admin/app_Kevin/archivos/parametros.json', 'r') as file:
 			params = json.load(file)
 			if(len(params) != 12):
 				return None
@@ -227,7 +226,7 @@ def carga_parametros_configuracion():
 		
 def guardar_parametros_configuracion():
 	try:
-		with open('archivos/parametros.json','w') as file:
+		with open('/home/admin/app_Kevin/archivos/parametros.json','w') as file:
 			datos = {
 			"csv_file_name":csv_file_name,
 			"csv_file_path": csv_file_path,
@@ -300,7 +299,7 @@ def lectura_telemetro():
     
 def lectura():
 	while True:
-		global start_led_blinking, wavelength_range, spectra_data_blanco, spectra_data_negro, spectra_data_glob, color_spec, color_gps, option1, option2, tiempo_guardado, fin, datos_guardados, integration_time_micro_anterior, integration_time_micro, rango_inicial, rango_final, average_scans, boxcar_width, boxcar_width_anterior, absor, refl
+		global wavelength_range, spectra_data_blanco, spectra_data_negro, spectra_data_glob, color_spec, color_gps, option1, option2, tiempo_guardado, fin, datos_guardados, integration_time_micro_anterior, integration_time_micro, rango_inicial, rango_final, average_scans, boxcar_width, boxcar_width_anterior, absor, refl
 		device_count = od.find_usb_devices()
 		try:
 			device_ids = od.get_device_ids()
@@ -356,9 +355,9 @@ def lectura():
 					else:
 						distancia_real =  distancia_cm - longitud_canula_cm
 					if (len(spectra_data_blanco) == 0 and len(spectra_data_negro) == 0):
-						with open('archivos/blanco_cal.json', 'r') as archivo_json:
+						with open('/home/admin/app_Kevin/archivos/blanco_cal.json', 'r') as archivo_json:
 							spectra_data_blanco = json.load(archivo_json)
-						with open('archivos/negro_cal.json', 'r') as archivo_json:
+						with open('/home/admin/app_Kevin/archivos/negro_cal.json', 'r') as archivo_json:
 							spectra_data_negro = json.load(archivo_json)
 					absor, refl = calculo(spectra, spectra_data_blanco, spectra_data_negro)
 					minino = device.get_minimum_integration_time()
@@ -381,7 +380,6 @@ def lectura():
 					color_spec = 'green'
 
 					if is_recording:
-						start_led_blinking = True
 						datos_guardados += 1
 						if option1 > 1 and option2 > 1:
 							spectra_data_t = trim_spectra_data(spectra_data, option1, option2)
@@ -389,8 +387,6 @@ def lectura():
 						update_csv_file(filtered_data, csv_file_path)
 						#print("Guardando")
 						#print(len(filtered_data)) => El numero de checkboxes seleccionados
-					else:
-						start_led_blinking = False
 					fin = time.time()
 					duracion = fin - inicio
 					#print(f"Datos guardados {datos_guardados}")
@@ -453,7 +449,6 @@ def lectura():
 			spectra_data_glob = spectra_data
 			
 			if is_recording:
-				start_led_blinking = True
 				datos_guardados += 1
 				update_csv_file(spectra_data, csv_file_path)
 				print("Guardando")
@@ -467,8 +462,6 @@ def lectura():
 					tiempo_espera = tiempo_guardado - duracion
 					print(f"Esperando {tiempo_espera} segundos...")
 					time.sleep(tiempo_espera)
-			else:
-				start_led_blinking = False
 			print("------------------")
 		print(f" ============== Durmiendo la lectura del sensor y gps: {tiempo_guardado} =======================")
 		time.sleep(tiempo_guardado)
@@ -666,7 +659,7 @@ def update_black_spectra_data():
     global spectra_data_negro
     black_spectra_data = request.get_json()
     spectra_data_negro = black_spectra_data
-    with open('archivos/negro_cal.json', 'w') as archivo_json:
+    with open('/home/admin/app_Kevin/archivos/negro_cal.json', 'w') as archivo_json:
         json.dump(spectra_data_negro, archivo_json)
     return jsonify({'status': 'success'})
 
@@ -675,7 +668,7 @@ def update_white_spectra_data():
     global spectra_data_blanco
     white_spectra_data = request.get_json()
     spectra_data_blanco = white_spectra_data
-    with open('archivos/blanco_cal.json', 'w') as archivo_json:
+    with open('/home/admin/app_Kevin/archivos/blanco_cal.json', 'w') as archivo_json:
         json.dump(spectra_data_blanco, archivo_json)
     return jsonify({'status': 'success'})
 
@@ -736,10 +729,10 @@ def get_selected():
 
 @app.route('/start_recording', methods=['POST'])
 def start_recording():
-    global is_recording
-    is_recording = not is_recording
-    guardar_parametros_configuracion()
-    return jsonify({'status': 'ok'})
+	global is_recording
+	is_recording = not is_recording
+	guardar_parametros_configuracion()
+	return jsonify({'status': 'ok'})
 
 @app.route('/get_recording_status')
 def get_recording_status():

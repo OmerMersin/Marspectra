@@ -705,15 +705,7 @@
 			.then(response => {
 				console.log(response.default_values);
 				resestUIelementsDefaultValues(response.default_values);
-				const div_aviso = document.getElementById('filtered-data');
-				div_aviso.textContent = response.message
-				div_aviso.classList.add("alert");
-				div_aviso.classList.add("alert-success");
-				setTimeout(function() {
-						div_aviso.textContent  = "";
-						div_aviso.classList.remove("alert");
-						div_aviso.classList.remove("alert-success");
-				}, 3000);
+				drawServerReceivedMessage(response.message);
 			
 			}).catch(error => console.error('Error en resetear a valores por defecto: ', error))
 		});
@@ -1279,14 +1271,6 @@
                 
                 drawServerReceivedMessage('Rango de longitudes de onda actualizado');
 
-				//~ filteredDataElement.innerHTML = "Rango de longitudes de onda actualizado"
-
-				//~ setTimeout(function() {
-
-					//~ filteredDataElement.innerHTML = '';
-
-				//~ }, 3000);
-
             })
 
             .catch(error => {
@@ -1315,16 +1299,6 @@
 
 					success: function(response) {
 						console.log($(this).serialize());
-
-						//$('#filtered-data').text(response.message);
-
-						//~ $('#filtered-data').text(response.filtered_data);
-
-						//~ setTimeout(function() {
-
-							//~ $('#filtered-data').text('');
-
-						//~ }, 3000);
 						
 						drawServerReceivedMessage(response.filtered_data);
 
@@ -1361,7 +1335,11 @@
 						$startRecording.text(isRecording ? 'Pausar registro' : 'Iniciar registro');
 
 						$startRecording.data('recording', isRecording);
-
+												
+						if(isRecording){
+							$startRecording.addClass("btn-danger");							
+						}else
+							$startRecording.removeClass("btn-danger");									
 					})
 
 					.catch(error => {
