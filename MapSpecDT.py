@@ -127,13 +127,7 @@ gpio_led_grabacion     = 5
 gpio_entrada_botton = 21
 gpio_led_gps    = 17
 gpio_led_camara = 27
-
-
-
-def buttton_pressed_interruption(gpio_number):
-	global is_recording
-	print(f"Iniciando grabacion por interrupcion del gpio {gpio_number}")
-	is_recording = not is_recording
+gpio_led_sistema_ready = 4
 
 	
 
@@ -144,8 +138,11 @@ def setup_gpio():
 	GPIO.setup(gpio_led_camara,GPIO.OUT,initial = GPIO.LOW)
 	GPIO.setup(gpio_led_gps,GPIO.OUT,initial = GPIO.LOW)
 	GPIO.setup(gpio_entrada_botton,GPIO.IN, pull_up_down=GPIO.PUD_UP)
-	#GPIO.add_event_detect(gpio_entrada_botton,GPIO.FALLING,buttton_pressed_interruption,bouncetime=1000)
+	GPIO.setup(gpio_led_sistema_ready,GPIO.OUT, initial = GPIO.LOW)
 
+
+def system_ready():
+	GPIO.output(gpio_led_sistema_ready,True)
 
 def reading_button():
 	global is_recording
@@ -161,6 +158,7 @@ def reading_button():
 			time.sleep(0.15)
 		except Exception as es:
 			print(f"Se ha producido un fallo de lectura del boton: {e}")
+			time.sleep(1)
 
 
 
@@ -172,16 +170,14 @@ def blinking_led():
 				state_led = not state_led
 				GPIO.output(gpio_led_grabacion,state_led)
 				time.sleep(0.2)
-				state_led = not state_led
-				GPIO.output(gpio_led_grabacion,state_led)
-				time.sleep(0.2)
 			else:
 				state_led = False
 				GPIO.output(gpio_led_grabacion,GPIO.LOW)
 				time.sleep(0.2)
 		except Exception as e:
 			print(f"Se ha producido un fallo en blinking led: {e}")
-
+			time.sleep(1)
+			
 		
 
 
@@ -839,4 +835,5 @@ if __name__ == '__main__':
 	hilo_led = threading.Thread(target =  blinking_led)
 	hilo_led.daemon = True
 	hilo_led.start()
+	system_ready()
 	app.run(debug=True, host='0.0.0.0', use_reloader=False)
