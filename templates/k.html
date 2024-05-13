@@ -486,18 +486,23 @@
 		
 		const span_longitud_canula_actual = document.getElementById('span_longintud_canula');
 		
-		const span_rando_inicial = document.getElementById('rangoi');
+		const span_datos_guardados = document.getElementById('datos-guardados');
 		
-		const span_rando_final = document.getElementById('rangof');
+		const span_rango_inicial = document.getElementById('rangoi');
+		
+		const span_rango_final = document.getElementById('rangof');
 		
 		const span_tiempo_guardado = document.getElementById('tiempo-guardado');
 		
 		const span_tiempo_integracion = document.getElementById('tiempo-integracion');
 		
+		const span_variables_seleccionadas = document.getElementById('var_sel');
+		
 		const select_rango_incial = document.getElementById('option1');
 		
 		const select_rango_final = document.getElementById('option2');
 		
+				
 
         const margen1 = 0.01;
 
@@ -544,12 +549,31 @@
         const contentElement11 = document.getElementById('error_U');
         
         
+        function updateUIElementsContent(response){
+			span_datos_guardados.textContent = response.datosGuardados;
+			
+			span_longitud_canula_actual.textContent = response.valor_canula_actual;
+			
+			span_tiempo_guardado.textContent = response.tiempoGuardado;
+			
+			span_tiempo_integracion.textContent = response.tiempoIntegracion;
+			
+			span_rango_inicial.textContent = response.rangoi;
+			
+			span_rango_final.textContent = response.rangof;
+			
+			
+			span_variables_seleccionadas.textContent = response.var_sel
+		
+		}
+        
+        
 		function resestUIelementsDefaultValues(default_values){			
 			span_longitud_canula_actual.textContent = default_values.longitud_canula_cm;
 			
-			span_rando_inicial.textContent = default_values.rango_inicial;
+			span_rango_inicial.textContent = default_values.rango_inicial;
 			
-			span_rando_final.textContent = default_values.rando_final;
+			span_rango_final.textContent = default_values.rango_final;
 			
 			span_tiempo_guardado.textContent = default_values.tiempo_guardado;
 			
@@ -1391,66 +1415,19 @@
 		});
 
         function actualizarDatosGuardados() {
-
-            $.ajax({
-
-                url: '/get-datos-actualizados',
-
-                type: 'GET',
-
-                success: function(response) {
-
-                    $('#datos-guardados').text(response.datosGuardados);
-
-                    $('#tiempo-guardado').text(response.tiempoGuardado);
-
-                    $('#tiempo-integracion').text(response.tiempoIntegracion);
-
-                    $('#rangoi').text(response.rangoi);
-
-                    $('#rangof').text(response.rangof);
-
-                    $('#var_sel').text(response.var_sel);
-
-                    
-
-                },
-
-                error: function(error) {
-
-                    console.log(error);
-
-                }
-
-            });
+			fetch('/get-datos-actualizados')
+			.then(res    => res.json())
+			.then(response   => updateUIElementsContent(response))
+			.catch(error => console.error(error))
 
         }
-
-        $(document).ready(function() {
-
-            $('#clear-csv-btn').on('click', function() {
-
-                $.ajax({
-
-                    type: 'POST',
-
-                    url: '/clearcsv',
-
-                    success: function(response) {
-
-                    },
-
-                    error: function(xhr, status, error) {
-
-                        alert('Error al limpiar el contenido del CSV.');
-
-                    }
-
-                });
-
-            });
-
-        });
+		
+		document.getElementById('clear-csv-btn').addEventListener('click',function(event){
+			fetch('/clearcsv',{method: 'POST'})
+			.then(res  => res.json())
+			.then(data => drawServerReceivedMessage(data.message))
+			.catch(error => console.error(error))
+		});
 
 		//fetchAndUpdateSelectedFile();
 

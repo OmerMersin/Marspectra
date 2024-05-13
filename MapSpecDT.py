@@ -626,17 +626,14 @@ def clear_csv():
 	global datos_guardados
 	limpiar_csv =1
 	datos_guardados = 0
-	return jsonify({'status': 'base borrada correctamente'})
+	return jsonify({'message': 'Base borrada correctamente'})
 
 @app.route('/luz_gps')
 def luz_gps():
-    global color_gps
-    global color_spec
     return jsonify({'color_gps': color_gps, 'color_spec': color_spec})
 
 @app.route('/datosGPS')
 def datosGPS():
-    global spectra_data_glob
     return jsonify({'error_N': spectra_data_glob['Error Latitud'],
                     'error_E': spectra_data_glob['Error Longitud'],
                     'error_U': spectra_data_glob['Error Altitud'],
@@ -790,19 +787,11 @@ def get_selected_file():
 
 @app.route('/get-datos-actualizados')
 def get_datos_actualizados():
-    global datos_guardados
-    global tiempo_guardado
-    global rango_inicial
-    global rango_final
-    global variables_sel_ant
-    global integration_time_micro
-    return jsonify({'datosGuardados': datos_guardados, 'tiempoIntegracion': integration_time_micro/1000, 'tiempoGuardado': tiempo_guardado, 'rangoi': option1, 'rangof': option2, 'var_sel': variables_sel_ant})
+    return jsonify({'datosGuardados': datos_guardados, 'tiempoIntegracion': integration_time_micro/1000, 'tiempoGuardado': tiempo_guardado, 
+    'rangoi': option1, 'rangof': option2, 'var_sel': variables_sel_ant, 'valor_canula_actual':longitud_canula_cm})
 
 @app.route('/get-datos-actualizados-cal')
 def get_datos_actualizados_cal():
-    global boxcar_width
-    global average_scans
-    global integration_time_micro
     return jsonify({'tiempoIntegracion': integration_time_micro/1000, 'BoxcarWidth': boxcar_width_anterior, 'AverageScans': average_scans})
 
 @app.route('/list_csv_files')
