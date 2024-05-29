@@ -1317,7 +1317,7 @@
 
 					type: 'POST',
 
-					url: '/get_selected',
+					url: '/update_selected_variables',
 
 					data: $(this).serialize(),
 
@@ -1428,8 +1428,6 @@
 			.then(data => drawServerReceivedMessage(data.message))
 			.catch(error => console.error(error))
 		});
-
-		//fetchAndUpdateSelectedFile();
 
 		setInterval(fetchAndUpdateSelectedFile, 700);
 

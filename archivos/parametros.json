@@ -1,6 +1,6 @@
 {
-    "csv_file_name": "bateria.csv",
-    "csv_file_path": "/doc/bateria.csv",
+    "csv_file_name": "sensor.csv",
+    "csv_file_path": "/doc/sensor.csv",
     "integration_time_micro_anterior": 102000,
     "integration_time_micro": 102000,
     "tiempo_guardado": 2,

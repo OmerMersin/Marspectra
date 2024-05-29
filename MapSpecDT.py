@@ -15,9 +15,9 @@ import datetime
 import os
 import RPi.GPIO as GPIO
 
-# ~ import logging
-# ~ log = logging.getLogger('werkzeug')
-# ~ log.setLevel(logging.ERROR)
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 
 
@@ -34,8 +34,7 @@ od = OceanDirectAPI()
 
 
 
-csv_file_name = 'ejemplo.csv'
-csv_file_path = '/doc/ejemplo.csv'
+
 integration_time_micro_anterior = 100000
 integration_time_micro = 100000
 tiempo_guardado = 0.5
@@ -46,7 +45,8 @@ longitud_canula_cm = 30.0
 option1 = 187.3873748779297
 option2 = 188.09348591706456
 
-	
+csv_file_name = 'ejemplo.csv'
+csv_file_path = '/doc/ejemplo.csv'	
 with open(csv_file_path, 'w', newline='') as archivo:
     writer = csv.writer(archivo)
 
@@ -73,35 +73,6 @@ display_names = {
 }
 
 checkboxes = []
-
-while True:
-	try:
-		ser = serial.Serial(
-			port='/dev/ttyAMA4',
-			baudrate=38400,
-			timeout=0.2
-		)
-		ser.close()
-		break 
-	except serial.SerialException:
-		print("Esperando conexion con el puerto serie...")
-		time.sleep(5)
-
-
-while True:
-	try:
-		ser_telemetro = serial.Serial(port='/dev/ttyS0',baudrate=9600,timeout = 0.1)
-		print("Conexion establecida con el telemetro")
-		break 
-	except serial.SerialException:
-		print("Esperando conexion con el puerto uart, donde se encuentra conectado el telemetro")
-		time.sleep(5)
-
-try:
-	device_count = od.find_usb_devices()
-	device_ids = od.get_device_ids()
-except:
-	pass
 	
 spectra_data_glob = {}
 spectra_data_blanco = []
@@ -129,8 +100,37 @@ gpio_led_gps    = 17
 gpio_led_camara = 27
 gpio_led_sistema_ready = 4
 
-	
+#Inicializacion del puerto serie al que se conecta el gps	
+while True:
+	try:
+		ser = serial.Serial(
+			port='/dev/ttyAMA4',
+			baudrate=38400,
+			timeout=0.2
+		)
+		ser.close()
+		break 
+	except serial.SerialException:
+		print("Esperando conexion con el puerto serie...")
+		time.sleep(5)
 
+#Inicializacion del puerto serie al que se conecta el telemetro	
+while True:
+	try:
+		ser_telemetro = serial.Serial(port='/dev/ttyS0',baudrate=9600,timeout = 0.1)
+		print("Conexion establecida con el telemetro")
+		break 
+	except serial.SerialException:
+		print("Esperando conexion con el puerto uart, donde se encuentra conectado el telemetro")
+		time.sleep(5)
+
+try:
+	device_count = od.find_usb_devices()
+	device_ids = od.get_device_ids()
+except:
+	pass
+	
+	
 def setup_gpio():
 	GPIO.setwarnings(False)
 	GPIO.setmode(GPIO.BCM)
@@ -213,6 +213,9 @@ def carga_parametros_configuracion():
 			option2 = params["option2"]
 			selected_checkboxes = params["selected_checkboxes"]
 			variables_sel_ant = selected_checkboxes[:-4]
+			if not os.path.exists(csv_file_path):
+				csv_file_name = 'ejemplo.csv'
+				csv_file_path = '/doc/ejemplo.csv'	 
 			print(f"Parametros cargados! : { len (params)}")
 	except Exception as e:
 		print("Problemas al cargar los valores de parametros.json")
@@ -394,12 +397,12 @@ def lectura():
 						time.sleep(tiempo_espera)
 					print("------------------")
 				except Exception as e:
-					print(f"$·$·$·$·$·$ 1 Fallo en la lectura del sensor de la camara 1 $·$·$·$·$·$")
+					print(f"$·$·$·$·$·$ 1 Fallo en la lectura del espectrometro 1 $·$·$·$·$·$")
 					print(e)
 					break
 
 		except Exception as e:
-			print(f"$·$·$·$·$·$ 2 Fallo en la lectura del sensor de la camara 2 $·$·$·$·$·$")
+			print(f"$·$·$·$·$·$ 2 Fallo en la lectura del espectrometro 2 $·$·$·$·$·$")
 			GPIO.output(gpio_led_camara,False)
 			print(e)
 			inicio = time.time()
@@ -705,12 +708,11 @@ def new_saving_time():
     longitud_canula_cm = float(request.get_json()[1])
     return jsonify({'filtered_data': 'Intervalo de tiempo y distancia de la cánula actualizados correctamente','valor_canula_actual':longitud_canula_cm})
     
-@app.route('/get_selected', methods=['POST'])
+@app.route('/update_selected_variables', methods=['POST'])
 def get_selected():
     global selected_checkboxes, variables_sel_ant,checkboxes
     selected_checkboxes = request.form.getlist('names')
     print(f"Los selected checkboxes son: {selected_checkboxes}")
-    #selected_checkboxes.pop(0)
     selected_checkboxes.append('wavelength_range')
     selected_checkboxes.append('spectra')
     selected_checkboxes.append('absorbance')
@@ -818,22 +820,22 @@ def select_csv():
 @app.route('/')
 def index():
     global spectra_data_glob
-    return render_template('k.html', checkboxes=checkboxes, spectra_data = spectra_data_glob, desplegables = wavelength_range, 
+    return render_template('configuration.html', checkboxes=checkboxes, spectra_data = spectra_data_glob, desplegables = wavelength_range, 
     num_logs = datos_guardados, longitud_canula_cm = longitud_canula_cm,option1 = option1,option2 = option2)
 
 if __name__ == '__main__':
 	carga_parametros_configuracion()
 	datos_guardados = contar_filas_csv(csv_file_path)
 	checkboxes = [{'name': display_names.get(key, key), 'checked': display_names[key] in variables_sel_ant} for key in display_names.keys()]
-	hilo_sensor = threading.Thread(target=lectura)
-	hilo_sensor.daemon = True 
-	hilo_sensor.start()
+	hilo_lectura_sensores = threading.Thread(target=lectura)
+	hilo_lectura_sensores.daemon = True 
+	hilo_lectura_sensores.start()
 	setup_gpio()
-	hilo_boton = threading.Thread(target =  reading_button)
-	hilo_boton.daemon = True
-	hilo_boton.start()
-	hilo_led = threading.Thread(target =  blinking_led)
-	hilo_led.daemon = True
-	hilo_led.start()
+	hilo_boton_rec = threading.Thread(target =  reading_button)
+	hilo_boton_rec.daemon = True
+	hilo_boton_rec.start()
+	hilo_led_rec = threading.Thread(target =  blinking_led)
+	hilo_led_rec.daemon = True
+	hilo_led_rec.start()
 	system_ready()
 	app.run(debug=True, host='0.0.0.0', use_reloader=False)
