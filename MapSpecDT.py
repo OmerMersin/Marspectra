@@ -629,9 +629,9 @@ def calibration():
     return render_template('calibration.html')
 
 
-@app.route('/calculos')
+@app.route('/calculations')
 def calculation_page():
-    return render_template('calculos.html')
+    return render_template('calculations.html')
 
 
 @app.route('/update_black_spectra_data', methods=['POST'])
