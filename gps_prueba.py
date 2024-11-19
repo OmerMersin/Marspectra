@@ -10,28 +10,25 @@ try:
         baudrate=38400,
         timeout=0.21)
 except Exception as e:
-    print(f"Problema para comunicarse con el puerto serie: {e}")
+    print(f"Problem communicating with the serial port: {e}")
 
-
-# 	msg = ser.read(150) En version read(), aunque hay que ajustar cosas
+# msg = ser.read(150) In read() version, although some adjustments are needed
 if ser:
     while True:
         init = time.time()
         try:
             data = ser.readline().decode('utf-8').strip()
-            if data:  # Verifica que se haya recibido algo
-                partes = data.split()
-                # procesamiento de datos
+            if data:  # Check if something was received
+                parts = data.split()
+                # Data processing
                 color_gps = 'green'
             else:
                 raise Exception("No data received")
             final = time.time()
-            print(f"EXITO FUNCION LECTURA GPS: TIEMPO {final - init}")
+            print(f"SUCCESS GPS READ FUNCTION: TIME {final - init}")
         except Exception as e:
-            # manejo de errores
+            # Error handling
             color_gps = 'red'
             final = time.time()
-            print(f"FUNCION LECTURA GPS: EXCEPTION GPS: {e}")
-            print(f"TIEMPO FUNCION LECTURA GPS: EXCEPTION GPS {final - init}")
-
-
+            print(f"GPS READ FUNCTION: GPS EXCEPTION: {e}")
+            print(f"GPS READ FUNCTION TIME: GPS EXCEPTION {final - init}")

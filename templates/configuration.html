@@ -11,7 +11,7 @@
     <title>DroneTools</title>
 
     <!--<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"> -->
-	<link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
     <script src="/static/js/jquery-3.6.0.min.js"></script>
 
     <style>
@@ -60,13 +60,13 @@
 
         }
 
-		.texto-pequeno {
+        .small-text {
 
-			font-size: 14px;
+            font-size: 14px;
 
-		}
+        }
 
-        .estado-container {
+        .status-container {
 
             display: flex;
 
@@ -76,7 +76,7 @@
 
         }
 
-        .margen-personalizado {
+        .custom-margin {
 
             margin: 20px;
 
@@ -94,383 +94,360 @@
 
     <div class="container mt-5">
 
-        <h1 class="text-center">Página de configuración</h1>
+        <h1 class="text-center">Configuration Page</h1>
 
         <p class="text-center">
 
-            <a href="/calibration" class="btn btn-primary">Calibración</a>
-			<a href="/calculos" class="btn btn-primary">Calculos</a>
+            <a href="/calibration" class="btn btn-primary">Calibration</a>
+            <a href="/calculos" class="btn btn-primary">Calculations</a>
         </p>
 
-        <div class="margen-personalizado">
+        <div class="custom-margin">
 
-	
-
-		</div>
+        </div>
 
         <div class="row">
 
             <div class="col-md-4">
 
-                <h3>Selección de variables</h3>
+                <h3>Variable Selection</h3>
 
                 <form id="checkbox-form">
 
-<!--
+                    <!--
                     <input type="hidden" name="names" value="">
--->
+                    -->
 
                     {% for checkbox in checkboxes %}
 
-						<div class="form-check mb-3">
+                        <div class="form-check mb-3">
 
-							<input type="checkbox" id="{{ checkbox.name }}" name="names" value="{{ checkbox.name }}" {% if checkbox.checked %}checked{% endif %}>
+                            <input type="checkbox" id="{{ checkbox.name }}" name="names" value="{{ checkbox.name }}" {% if checkbox.checked %}checked{% endif %}>
 
-							<label for="{{ checkbox.name }}" class="form-check-label">{{ checkbox.name }}</label><br>
+                            <label for="{{ checkbox.name }}" class="form-check-label">{{ checkbox.name }}</label><br>
 
-						</div>
+                        </div>
 
-					{% endfor %}
+                    {% endfor %}
 
-                    <button type="submit" class="btn btn-primary">Guardar selección</button>
+                    <button type="submit" class="btn btn-primary">Save Selection</button>
 
                 </form>
 
-				<div class="container mt-4">
+                <div class="container mt-4">
 
-				  <div class="row">
+                  <div class="row">
 
-					<div class="col-md-12">
+                    <div class="col-md-12">
 
-					  <div class="card">
+                      <div class="card">
 
-						<div class="card-body">
+                        <div class="card-body">
 
-						  <h5 class="card-title">Detalles de la Selección</h5>
+                          <h5 class="card-title">Selection Details</h5>
 
-						  <p class="card-text">
+                          <p class="card-text">
 
-							<strong>Longitud de onda inicial en uso:</strong> <span id="rangoi" class="text-primary"></span>
+                            <strong>Initial Wavelength in Use:</strong> <span id="rangoi" class="text-primary"></span>
 
-						  </p>
+                          </p>
 
-						  <p class="card-text">
+                          <p class="card-text">
 
-							<strong>Longitud de onda final en uso:</strong> <span id="rangof" class="text-primary"></span>
+                            <strong>Final Wavelength in Use:</strong> <span id="rangof" class="text-primary"></span>
 
-						  </p>
+                          </p>
 
-						  <p class="card-text">
+                          <p class="card-text">
 
-							<strong>Variables en uso:</strong> <span id="var_sel" class="text-primary"></span>
+                            <strong>Variables in Use:</strong> <span id="var_sel" class="text-primary"></span>
 
-						  </p>
-						  <p class="card-text">
-						    <strong>Nombre del archivo seleccionado:</strong> <span id="nombreArchivoSeleccionado" class="text-primary"></span>
-						  </p>
+                          </p>
+                          <p class="card-text">
+                            <strong>Selected File Name:</strong> <span id="selectedFileName" class="text-primary"></span>
+                          </p>
 
-						</div>
+                        </div>
 
-					  </div>
+                      </div>
 
-					</div>
+                    </div>
 
-				  </div>
+                  </div>
 
-				</div>
-
-
+                </div>
 
             </div>
 
+            <div class="col-md-4">
 
+                <form method="POST" action="/filter" class="text-center">
+
+                    <select name="option1" id="option1" onchange="validateRange()" class="mb-2">
+
+                        {% for item in desplegables %}
+
+                            <option value="{{ item }}" {% if item == option1 %} selected {% endif %}>{{ item }}</option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <select name="option2" id="option2" onchange="validateRange()" class="mb-2">
+
+                        {% for item in desplegables %}
+
+                            <option value="{{ item }}" {% if item == option2 %} selected {% endif %}>{{ item }}</option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <button type="button" class="btn btn-primary mx-auto d-block mb-3" id="submit-button" onclick="updateFilter()">Update Filter</button>
+
+                </form>
+
+                <div class="text-center mb-3">
+
+                    <button id="start-recording" class="btn btn-primary mx-auto d-block">Start Recording</button>
+
+                </div>
+                
+                <div class="text-center mb-3">
+                    
+                    <button id="save-configuration-button"  class="btn btn-primary mx-auto d-block">Save Configuration</button>
+                
+                </div>
+                
+                <div class="text-center mb-3">
+                    
+                    <button id="default-button"  class="btn btn-primary mx-auto d-block">Default Values</button>
+                
+                </div>
+
+                <div class="text-center mb-3">
+
+                    <button id="clear-csv-btn" class="btn btn-primary mx-auto d-block">Clear Database</button>
+
+                </div>
+
+                <form action="/download_csv" method="get" class="text-center mb-3">
+
+                    <button type="submit" class="btn btn-primary mx-auto d-block">Download Data</button>
+
+                </form>                
+    
+                <form id="saveIntervalForm" class="text-center">
+
+                    <div class="form-group p-3">
+
+                        <input type="text" class="form-control" id="numberInput" aria-describedby="numberHelp" placeholder="Save interval in seconds">
+
+                        <small id="numberHelp" class="form-text text-muted">Minimum: 0.2 seconds</small>
+
+                        <input type="text" class="form-control" id="input_canula" aria-describedby="numberHelp" placeholder="Canula distance in cm, minimum 30 cm">
+
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mx-auto d-block">Update</button>
+
+                </form>
+
+                <div class="text-center">Number of Records: <span id="saved-data"></span></div>
+                <div class="text-center">Canula Distance (cm): <span id="span_canula_length"> {{length_canula_cm}}</span></div>
+                <div class="text-center">Save Interval (s): <span id="save-interval"></span></div>
+
+                <div class="text-center">Camera Integration Time (ms): <span id="integration-time"></span></div>
+
+                <button type="button" class="btn mx-auto d-block" data-bs-toggle="tooltip" data-bs-placement="top" title="A save time close to the minimum can lead to delays in some readings. The camera's integration time also affects the save time"></button>
+
+                <div class="text-center">⚠</div>
+
+            </div>
 
             <div class="col-md-4">
 
-				<form method="POST" action="/filter" class="text-center">
+                <h3 class="text-center">Status Lights</h3>
 
-					<select name="option1" id="option1" onchange="validateRange()" class="mb-2">
-
-						{% for item in desplegables %}
-
-							<option value="{{ item }}" {% if item == option1 %} selected {% endif %}>{{ item }}</option>
-
-						{% endfor %}
-
-					</select>
-
-
-
-					<select name="option2" id="option2" onchange="validateRange()" class="mb-2">
-
-						{% for item in desplegables %}
-
-							<option value="{{ item }}" {% if item == option2 %} selected {% endif %}>{{ item }}</option>
-
-						{% endfor %}
-
-					</select>
-
-
-
-					<button type="button" class="btn btn-primary mx-auto d-block mb-3" id="submit-button" onclick="updateFilter()">Actualizar filtro</button>
-
-				</form>
-
-
-
-				<div class="text-center mb-3">
-
-					<button id="start-recording" class="btn btn-primary mx-auto d-block">Iniciar registro</button>
-
-				</div>
-				
-				<div class="text-center mb-3">
-					
-					<button id="save-configuration-button"  class="btn btn-primary mx-auto d-block">Guardar configuración</button>
-				
-				</div>
-
-				
-				
-				<div class="text-center mb-3">
-					
-					<button id="default-button"  class="btn btn-primary mx-auto d-block">Valores por defecto</button>
-				
-				</div>
-
-
-				<div class="text-center mb-3">
-
-					<button id="clear-csv-btn" class="btn btn-primary mx-auto d-block">Limpiar base de datos</button>
-
-				</div>
-
-
-
-				<form action="/download_csv" method="get" class="text-center mb-3">
-
-					<button type="submit" class="btn btn-primary mx-auto d-block">Descargar datos</button>
-
-				</form>				
-	
-
-				<form id="tiempo_save" class="text-center">
-
-					<div class="form-group p-3">
-
-						<input type="text" class="form-control" id="numeroInput" aria-describedby="numeroHelp" placeholder="Intervalo de guardado en segundos">
-
-						<small id="numeroHelp" class="form-text text-muted">Mínimo: 0.2 segundos</small>
-
-						<input type="text" class="form-control" id="input_canula" aria-describedby="numeroHelp" placeholder="Distancia de la cánula en cm, mínimo 30 cm">
-
-
-					</div>
-
-					<button type="submit" class="btn btn-primary mx-auto d-block">Actualizar</button>
-
-				</form>
-
-				<div class="text-center">Número de registros: <span id="datos-guardados"></span></div>
-				<div class="text-center">Distancia de la cánula (cm): <span id="span_longintud_canula"> {{longitud_canula_cm}}</span></div>
-				<div class="text-center">Intervalo de guardado  (s) : <span id="tiempo-guardado"></span></div>
-
-				<div class="text-center">Tiempo de integración de la cámara (ms): <span id="tiempo-integracion"></span></div>
-
-				<button type="button" class="btn mx-auto d-block" data-bs-toggle="tooltip" data-bs-placement="top" title="Un tiempo de guardado cerca del mínimo puede llevar a retardos en alguna toma. El tiempo de integración de la cámara también afecta al tiempo de guardado"</button>
-
-				<div class="text-center">⚠</div>
-
-			</div>
-
-
-
-            <div class="col-md-4">
-
-				<h3 class="text-center">Luces de estado</h3>
-
-                <div class="estado-container">
+                <div class="status-container">
 
                     <div class="flex-center">
 
                         <div id="circle" class="circle"></div>
 
-                        <div class="text-start">Estado GPS</div>
+                        <div class="text-start">GPS Status</div>
 
                     </div>
-
-
 
                     <div class="flex-center">
 
                         <div id="circle2" class="circle"></div>
 
-                        <div class="text-start">Estado cámara</div>
+                        <div class="text-start">Camera Status</div>
 
                     </div>
 
                 </div>
 
                   <div class="col text-center">
-					  
-					<div class="coltext-center">
-						
-							<div class="fw-bold">Fecha:</div>
+                      
+                    <div class="col text-center">
+                        
+                            <div class="fw-bold">Date:</div>
 
-							<div id="fecha" data-key="fecha"></div>
-					</div>
-					
-					<div class="col text-center">
-						
-							<div class="fw-bold">Hora (UTC):</div>
-							
+                            <div id="date" data-key="date"></div>
+                    </div>
+                    
+                    <div class="col text-center">
+                        
+                            <div class="fw-bold">Time (UTC):</div>
+                            
 
-							<div id="altitud" data-key="hora"></div>
-							
-					</div>
-					
-					<div class="row p-3">
+                            <div id="time" data-key="time"></div>
+                            
+                    </div>
+                    
+                    <div class="row p-3">
 
-						<div class="fw-bold">Precisión del GPS</div>
+                        <div class="fw-bold">GPS Precision</div>
 
-					</div>
+                    </div>
 
-					<div class="row">
+                    <div class="row">
 
-						<div class="col text-center align-self-center">
+                        <div class="col text-center align-self-center">
 
-							<div class="">Desviación Longitud</div>
+                            <div class="">Longitude Deviation</div>
 
-							<div id="error_E" data-key="error_E"></div>
+                            <div id="error_E" data-key="error_E"></div>
 
-						</div>
+                        </div>
 
-						<div class="col text-center align-self-center">
+                        <div class="col text-center align-self-center">
 
-							<div class="">Desviación Latitud</div>
+                            <div class="">Latitude Deviation</div>
 
-							<div id="error_N" data-key="error_N"></div>
+                            <div id="error_N" data-key="error_N"></div>
 
-						</div>
+                        </div>
 
-						<div class="col text-center align-self-center">
+                        <div class="col text-center align-self-center">
 
-							<div class="">Desviación Altitud</div>
+                            <div class="">Altitude Deviation</div>
 
-							<div id="error_U" data-key="error_U"></div>
+                            <div id="error_U" data-key="error_U"></div>
 
-						</div>
+                        </div>
 
-					</div>
+                    </div>
 
-					<div class="row">
+                    <div class="row">
 
-						<div class="col-4 color-rect" id="rect11"></div>
+                        <div class="col-4 color-rect" id="rect11"></div>
 
-						<div class="col-4 color-rect" id="rect12"></div>
+                        <div class="col-4 color-rect" id="rect12"></div>
 
-						<div class="col-4 color-rect" id="rect13"></div>
+                        <div class="col-4 color-rect" id="rect13"></div>
 
-					</div>
+                    </div>
 
-					<div class="row">
+                    <div class="row">
 
-						<div class="col-4 color-rect" id="rect21"></div>
+                        <div class="col-4 color-rect" id="rect21"></div>
 
-						<div class="col-4 color-rect" id="rect22"></div>
+                        <div class="col-4 color-rect" id="rect22"></div>
 
-						<div class="col-4 color-rect" id="rect23"></div>
+                        <div class="col-4 color-rect" id="rect23"></div>
 
-					</div>
+                    </div>
 
-					<div class="row">
+                    <div class="row">
 
-						<div class="col-4 color-rect" id="rect31"></div>
+                        <div class="col-4 color-rect" id="rect31"></div>
 
-						<div class="col-4 color-rect" id="rect32"></div>
+                        <div class="col-4 color-rect" id="rect32"></div>
 
-						<div class="col-4 color-rect" id="rect33"></div>
+                        <div class="col-4 color-rect" id="rect33"></div>
 
-					</div>
+                    </div>
 
-					<div class="row">
+                    <div class="row">
 
-						<div class="col-4 color-rect" id="rect41"></div>
+                        <div class="col-4 color-rect" id="rect41"></div>
 
-						<div class="col-4 color-rect" id="rect42"></div>
+                        <div class="col-4 color-rect" id="rect42"></div>
 
-						<div class="col-4 color-rect" id="rect43"></div>
+                        <div class="col-4 color-rect" id="rect43"></div>
 
-					</div>
+                    </div>
 
-					<div class="row">
+                    <div class="row">
 
-						<div class="col-4 color-rect" id="rect51"></div>
+                        <div class="col-4 color-rect" id="rect51"></div>
 
-						<div class="col-4 color-rect" id="rect52"></div>
+                        <div class="col-4 color-rect" id="rect52"></div>
 
-						<div class="col-4 color-rect" id="rect53"></div>
+                        <div class="col-4 color-rect" id="rect53"></div>
 
-					</div>
+                    </div>
 
-					<div class="row">
+                    <div class="row">
 
-						<div class="col-4 color-rect" id="rect61"></div>
+                        <div class="col-4 color-rect" id="rect61"></div>
 
-						<div class="col-4 color-rect" id="rect62"></div>
+                        <div class="col-4 color-rect" id="rect62"></div>
 
-						<div class="col-4 color-rect" id="rect63"></div>
+                        <div class="col-4 color-rect" id="rect63"></div>
 
-					</div>
+                    </div>
 
-					<div class="row">
+                    <div class="row">
 
-						<div class="col-4 text-center">
+                        <div class="col-4 text-center">
 
-							<div class="fw-bold">Longitud:</div>
+                            <div class="fw-bold">Longitude:</div>
 
-							<div id="longitud" class="texto-pequeno" data-key="longitud"></div>
+                            <div id="longitude" class="small-text" data-key="longitude"></div>
 
-						</div>
+                        </div>
 
-						<div class="col-4 text-center">
+                        <div class="col-4 text-center">
 
-							<div class="fw-bold">Latitud:</div>
+                            <div class="fw-bold">Latitude:</div>
 
-							<div id="latitud" class="texto-pequeno" data-key="latitud"></div>
+                            <div id="latitude" class="small-text" data-key="latitude"></div>
 
-						</div>
+                        </div>
 
-						<div class="col-4 text-center">
+                        <div class="col-4 text-center">
 
-							<div class="fw-bold">Altitud:</div>
+                            <div class="fw-bold">Altitude:</div>
 
-							<div id="altitud" class="texto-pequeno" data-key="altitud"></div>
+                            <div id="altitude" class="small-text" data-key="altitude"></div>
 
-						</div>
+                        </div>
 
-					</div>
+                    </div>
 
-				</div>
+                </div>
 
-				<form id="createCsvForm">
+                <form id="createCsvForm">
 
-					<input type="text" id="fileName" name="fileName" placeholder="Nombre del archivo CSV" required>
+                    <input type="text" id="fileName" name="fileName" placeholder="CSV File Name" required>
 
-					<button type="submit">Crear Archivo</button>
+                    <button type="submit">Create File</button>
 
-				</form>
+                </form>
 
-				<select id="csvFileSelector">
+                <select id="csvFileSelector">
 
-					<option>Selecciona un archivo CSV</option>
+                    <option>Select a CSV file</option>
 
-				</select>
+                </select>
 
-				<button id="deleteButton">Eliminar Archivo CSV Seleccionado</button>
+                <button id="deleteButton">Delete Selected CSV File</button>
 
-				<div id="filtered-data" class="mt-3 text-start"></div>
+                <div id="filtered-data" class="mt-3 text-start"></div>
 
             </div>
 
@@ -482,396 +459,346 @@
 
     <script>
 
-		const distancia_canula_input = document.getElementById('input_canula');
-		
-		const span_longitud_canula_actual = document.getElementById('span_longintud_canula');
-		
-		const span_datos_guardados = document.getElementById('datos-guardados');
-		
-		const span_rango_inicial = document.getElementById('rangoi');
-		
-		const span_rango_final = document.getElementById('rangof');
-		
-		const span_tiempo_guardado = document.getElementById('tiempo-guardado');
-		
-		const span_tiempo_integracion = document.getElementById('tiempo-integracion');
-		
-		const span_variables_seleccionadas = document.getElementById('var_sel');
-		
-		const select_rango_incial = document.getElementById('option1');
-		
-		const select_rango_final = document.getElementById('option2');
-		
-				
+        const canula_distance_input = document.getElementById('input_canula');
+        
+        const span_current_canula_length = document.getElementById('span_canula_length');
+        
+        const span_saved_data = document.getElementById('saved-data');
+        
+        const span_range_start = document.getElementById('rangoi');
+        
+        const span_range_end = document.getElementById('rangof');
+        
+        const span_save_interval = document.getElementById('save-interval');
+        
+        const span_integration_time = document.getElementById('integration-time');
+        
+        const span_selected_variables = document.getElementById('var_sel');
+        
+        const select_range_start = document.getElementById('option1');
+        
+        const select_range_end = document.getElementById('option2');
+                
+        const margin1 = 0.01;
+        const margin2 = 2;
+        const margin3 = 4;
+        const margin4 = 6;
+        const margin5 = 10;
+        const margin6 = 20;
 
-        const margen1 = 0.01;
+        const dark_green = "#006400"
+        const green = "#008000"
+        const light_green = "#00FF00"
+        const yellow = "#FFD700"
+        const orange = "#FFA500"
+        const red = "#FF0000"
+        const white = "#FFFFFF"
 
-        const margen2 = 2;
-
-        const margen3 = 4;
-
-        const margen4 = 6;
-
-        const margen5 = 10;
-
-        const margen6 = 20;
-
-
-
-        const verde_osc = "#006400"
-
-        const verde = "#008000"
-
-        const verde_cl = "#00FF00"
-
-        const amarillo = "#FFD700"
-
-        const naranja = "#FFA500"
-
-        const rojo = "#FF0000"
-
-        const blanco = "#FFFFFF"
-
-
-
-        const contentElement5 = document.getElementById('altitud');
-
-        const contentElement6 = document.getElementById('latitud');
-
-        const contentElement7 = document.getElementById('longitud');
-
-
+        const contentElement5 = document.getElementById('altitude');
+        const contentElement6 = document.getElementById('latitude');
+        const contentElement7 = document.getElementById('longitude');
 
         const contentElement9 = document.getElementById('error_N');
-
         const contentElement10 = document.getElementById('error_E');
-
         const contentElement11 = document.getElementById('error_U');
         
-        
         function updateUIElementsContent(response){
-			span_datos_guardados.textContent = response.datosGuardados;
-			
-			span_longitud_canula_actual.textContent = response.valor_canula_actual;
-			
-			span_tiempo_guardado.textContent = response.tiempoGuardado;
-			
-			span_tiempo_integracion.textContent = response.tiempoIntegracion;
-			
-			span_rango_inicial.textContent = response.rangoi;
-			
-			span_rango_final.textContent = response.rangof;
-			
-			
-			span_variables_seleccionadas.textContent = response.var_sel
-		
-		}
+            span_saved_data.textContent = response.dataSaved;
+            
+            span_current_canula_length.textContent = response.current_canula_value;
+            
+            span_save_interval.textContent = response.saveTime;
+            
+            span_integration_time.textContent = response.integrationTime;
+            
+            span_range_start.textContent = response.rangeStart;
+            
+            span_range_end.textContent = response.rangeEnd;
+            
+            span_selected_variables.textContent = response.selected_vars;
+        }
         
+        function resetUIElementsDefaultValues(default_values){            
+            span_current_canula_length.textContent = default_values.length_canula_cm;
+            
+            span_range_start.textContent = default_values.range_start;
+            
+            span_range_end.textContent = default_values.range_end;
+            
+            span_save_interval.textContent = default_values.save_time;
+            
+            span_integration_time.textContent = default_values.integration_time;
+            
+            select_range_start.value = default_values.range_start;
+             
+            select_range_end.value = default_values.range_end;
+        }
         
-		function resestUIelementsDefaultValues(default_values){			
-			span_longitud_canula_actual.textContent = default_values.longitud_canula_cm;
-			
-			span_rango_inicial.textContent = default_values.rango_inicial;
-			
-			span_rango_final.textContent = default_values.rango_final;
-			
-			span_tiempo_guardado.textContent = default_values.tiempo_guardado;
-			
-			span_tiempo_integracion.textContent = default_values.integration_time;
-			
-			select_rango_incial.value = default_values.rango_inicial;
-			 
-			select_rango_final.value = default_values.rango_final;
-		}
-		
-		
-		function drawServerReceivedMessage(message,isError=false){
-			const div_aviso = document.getElementById('filtered-data');
-			div_aviso.textContent = message
-			div_aviso.classList.add("alert");
-			let type_alert = "alert-success";
-			if(isError){
-				type_alert = "alert-warning";
-			}
-			div_aviso.classList.add(type_alert);
-			setTimeout(function() {
-					div_aviso.textContent  = "";
-					div_aviso.classList.remove("alert");
-					div_aviso.classList.remove(type_alert);
-			}, 3000);
-		}
+        function drawServerReceivedMessage(message, isError=false){
+            const div_notice = document.getElementById('filtered-data');
+            div_notice.textContent = message;
+            div_notice.classList.add("alert");
+            let alert_type = "alert-success";
+            if(isError){
+                alert_type = "alert-warning";
+            }
+            div_notice.classList.add(alert_type);
+            setTimeout(function() {
+                    div_notice.textContent  = "";
+                    div_notice.classList.remove("alert");
+                    div_notice.classList.remove(alert_type);
+            }, 3000);
+        }
 
-		function fetchAndUpdateSelectedFile() {
-			console.log("FetchAndUpdateSelectedFiles")
-			fetch('/get_selected_file')
-			.then(response => response.json())
-			.then(data => {
-				if (data.fileName) {
-					document.getElementById('nombreArchivoSeleccionado').textContent = data.fileName;
-					document.getElementById('csvFileSelector').value = data.fileName;
-				}
-			})
-			.catch(error => console.error('Error:', error));
-		}
-		
-
+        function fetchAndUpdateSelectedFile() {
+            console.log("FetchAndUpdateSelectedFiles")
+            fetch('/get_selected_file')
+            .then(response => response.json())
+            .then(data => {
+                if (data.fileName) {
+                    document.getElementById('selectedFileName').textContent = data.fileName;
+                    document.getElementById('csvFileSelector').value = data.fileName;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
-			console.log("DOM CONTENT LOADED EVENT TRIGGER: List Files")
-			fetch('/list_csv_files')
+            console.log("DOM CONTENT LOADED EVENT TRIGGER: List Files")
+            fetch('/list_csv_files')
 
-				.then(response => response.json())
+                .then(response => response.json())
 
-				.then(csvFiles => {
+                .then(csvFiles => {
 
-					const selector = document.getElementById('csvFileSelector');
+                    const selector = document.getElementById('csvFileSelector');
 
-					csvFiles.forEach(file => {
+                    csvFiles.forEach(file => {
 
-						const option = document.createElement('option');
+                        const option = document.createElement('option');
 
-						option.value = file;
+                        option.value = file;
 
-						option.textContent = file;
+                        option.textContent = file;
 
-						selector.appendChild(option);
+                        selector.appendChild(option);
 
-					});
-					
-					fetchAndUpdateSelectedFile();
-					
-				})
+                    });
+                    
+                    fetchAndUpdateSelectedFile();
+                    
+                })
 
-				.catch(error => console.error('Error al listar archivos CSV:', error));
+                .catch(error => console.error('Error listing CSV files:', error));
 
-		});
-
-		
-
-		function addFileToDropdown(fileName) {
-
-			const dropdown = document.getElementById('csvFileSelector');
-
-			const newOption = document.createElement('option');
-
-			newOption.value = fileName;
-
-			newOption.textContent = fileName;
-
-			dropdown.appendChild(newOption);
-			
-			dropdown.value = fileName;
-			document.getElementById('nombreArchivoSeleccionado').textContent = fileName;
-		}
-
-		
-
-		document.getElementById('createCsvForm').addEventListener('submit', function(e) {
-
-			e.preventDefault();
-
-
-
-			var fileName = document.getElementById('fileName').value;
-
-			if (fileName.length === 0) {
-
-				alert('Por favor, ingresa un nombre de archivo.');
-
-				return;
-
-			}
-
-
-
-			fetch('/create_csv', {
-
-				method: 'POST',
-
-				headers: {
-
-					'Content-Type': 'application/json',
-
-				},
-
-				body: JSON.stringify({ fileName: fileName }),
-
-			})
-
-			.then(response => response.json())
-
-			.then(data => {
-
-				console.log(data);
-
-				alert(data.message);
-
-
-
-				if(data.message && data.message.includes('creado exitosamente')) {
-
-					addFileToDropdown(fileName + ".csv");
-
-				}
-
-			})
-
-			.catch((error) => {
-
-				console.error('Error:', error);
-
-			});
-
-		});
-		
-		document.getElementById('default-button').addEventListener('click',function(){
-			fetch('/default_values',{method: 'POST'})
-			.then(response => response.json())
-			.then(response => {
-				console.log(response.default_values);
-				resestUIelementsDefaultValues(response.default_values);
-				drawServerReceivedMessage(response.message);
-			
-			}).catch(error => console.error('Error en resetear a valores por defecto: ', error))
-		});
-		
-		document.getElementById('save-configuration-button').addEventListener('click',function(){
-			fetch('/save_configuration',{method:'POST'})
-			.then(response => {
-				if(response.status != 200) throw new Error('Error al intentar guardar los parámetros de configuración')
-				return response.json()
-				
-			}).then(response => drawServerReceivedMessage(response.message))
-			.catch(error => {
-				console.error(error);
-				drawServerReceivedMessage('Error al intentar guardar los parámetros de configuración',true);
-			})
-		});
-		
-		
-		document.getElementById('csvFileSelector').addEventListener('change', function() {
-			const selectedFile = this.value;
-			console.log('Archivo CSV seleccionado:', selectedFile);
-			fetch('/select_csv', {
-
-				method: 'POST',
-
-				headers: {
-
-					'Content-Type': 'application/json',
-
-				},
-
-				body: JSON.stringify({fileName: selectedFile}),
-
-			})
-
-			.then(response => response.json())
-
-			.then(data => {
-				console.log(data)
-				document.getElementById('nombreArchivoSeleccionado').textContent = data.current_selected_file
-			})
-		});
-
-		document.getElementById('deleteButton').addEventListener('click', function() {
-
-			const selectedFile = document.getElementById('csvFileSelector').value;
-
-			if (selectedFile) {
-
-				fetch('/delete_csv', {
-
-					method: 'POST',
-
-					headers: {
-
-						'Content-Type': 'application/json',
-
-					},
-
-					body: JSON.stringify({ fileName: selectedFile }),
-
-				})
-
-				.then(response => response.json())
-
-				.then(data => {
-
-					console.log(data.message);
-
-					document.getElementById('csvFileSelector').remove(document.getElementById('csvFileSelector').selectedIndex);
-
-					alert(data.message);
-
-				})
-
-				.catch(error => console.error('Error:', error));
-
-			} else {
-
-				alert('Por favor, selecciona un archivo CSV para eliminar.');
-
-			}
-
-		});
-
+        });
         
+        function addFileToDropdown(fileName) {
+
+            const dropdown = document.getElementById('csvFileSelector');
+
+            const newOption = document.createElement('option');
+
+            newOption.value = fileName;
+
+            newOption.textContent = fileName;
+
+            dropdown.appendChild(newOption);
+            
+            dropdown.value = fileName;
+            document.getElementById('selectedFileName').textContent = fileName;
+        }
+
+        document.getElementById('createCsvForm').addEventListener('submit', function(e) {
+
+            e.preventDefault();
+
+            var fileName = document.getElementById('fileName').value;
+
+            if (fileName.length === 0) {
+
+                alert('Please enter a file name.');
+
+                return;
+
+            }
+
+            fetch('/create_csv', {
+
+                method: 'POST',
+
+                headers: {
+
+                    'Content-Type': 'application/json',
+
+                },
+
+                body: JSON.stringify({ fileName: fileName }),
+
+            })
+            .then(response => response.json())
+            .then(data => {
+
+                console.log(data);
+
+                alert(data.message);
+
+                if(data.message && data.message.includes('created successfully')) {
+
+                    addFileToDropdown(fileName + ".csv");
+
+                }
+
+            })
+            .catch((error) => {
+
+                console.error('Error:', error);
+
+            });
+        });
+        
+        document.getElementById('default-button').addEventListener('click', function(){
+            fetch('/default_values', {method: 'POST'})
+            .then(response => response.json())
+            .then(response => {
+                console.log(response.default_values);
+                resetUIElementsDefaultValues(response.default_values);
+                drawServerReceivedMessage(response.message);
+            }).catch(error => console.error('Error resetting to default values: ', error))
+        });
+        
+        document.getElementById('save-configuration-button').addEventListener('click', function(){
+            fetch('/save_configuration', {method:'POST'})
+            .then(response => {
+                if(response.status != 200) throw new Error('Error trying to save configuration parameters')
+                return response.json()
+            }).then(response => drawServerReceivedMessage(response.message))
+            .catch(error => {
+                console.error(error);
+                drawServerReceivedMessage('Error trying to save configuration parameters', true);
+            })
+        });
+        
+        document.getElementById('csvFileSelector').addEventListener('change', function() {
+            const selectedFile = this.value;
+            console.log('Selected CSV file:', selectedFile);
+            fetch('/select_csv', {
+
+                method: 'POST',
+
+                headers: {
+
+                    'Content-Type': 'application/json',
+
+                },
+
+                body: JSON.stringify({fileName: selectedFile}),
+
+            })
+
+            .then(response => response.json())
+
+            .then(data => {
+                console.log(data)
+                document.getElementById('selectedFileName').textContent = data.current_selected_file
+            })
+        });
+
+        document.getElementById('deleteButton').addEventListener('click', function() {
+
+            const selectedFile = document.getElementById('csvFileSelector').value;
+
+            if (selectedFile) {
+
+                fetch('/delete_csv', {
+
+                    method: 'POST',
+
+                    headers: {
+
+                        'Content-Type': 'application/json',
+
+                    },
+
+                    body: JSON.stringify({ fileName: selectedFile }),
+
+                })
+
+                .then(response => response.json())
+
+                .then(data => {
+
+                    console.log(data.message);
+
+                    document.getElementById('csvFileSelector').remove(document.getElementById('csvFileSelector').selectedIndex);
+
+                    alert(data.message);
+
+                })
+
+                .catch(error => console.error('Error:', error));
+
+            } else {
+
+                alert('Please select a CSV file to delete.');
+
+            }
+
+        });
 
         function updateDataElements(data) {
 
-			document.querySelectorAll('[data-key]').forEach((element) => {
+            document.querySelectorAll('[data-key]').forEach((element) => {
 
-				const key = element.getAttribute('data-key');
+                const key = element.getAttribute('data-key');
 
+                if (data[key] !== undefined) {
 
+                    if (key.startsWith('error')) {
 
-				if (data[key] !== undefined) {
+                        element.innerText = `${data[key]} m`;
 
-					if (key.startsWith('error')) {
+                    } else if (key === 'date' || key === 'time') {
+                        
+                        element.innerText = data[key];
+                        
+                    } else {
 
-						element.innerText = `${data[key]} m`;
+                        element.innerText = `${data[key]} ${key === 'altitude' ? 'm' : 'º'}`;
 
-					}else if (key === 'fecha' || key === 'hora') {
-						
-						element.innerText = data[key];
-						
-					}else {
+                    }
 
-						element.innerText = `${data[key]} ${key === 'altitud' ? 'm' : 'º'}`;
+                }
 
-					}
+            });
 
-				}
-
-			});
-
-		}	
-		
-		document.getElementById('tiempo_save').addEventListener('submit', function(event) {
+        }    
+        
+        document.getElementById('saveIntervalForm').addEventListener('submit', function(event) {
             event.preventDefault(); 
-            let numeroIntroducido = document.getElementById('numeroInput').value;
-			let distancia_canula_value = distancia_canula_input.value;
-			if(!numeroIntroducido || !distancia_canula_value || isNaN(numeroIntroducido) || isNaN(distancia_canula_value)
-			|| numeroIntroducido < 0.2 || distancia_canula_value < 30){
-					drawServerReceivedMessage("Debe introducir un valor correcto para el intervarlo y la distancia",true);
-					return;
-			} 
-			const datos = [numeroIntroducido,distancia_canula_value]
-			fetch('/tiempo_guardado',{
-				method: 'POST',
-				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify(datos)
-			})
-			.then(response => response.json())
-			.then(response => {
-				drawServerReceivedMessage(response.filtered_data);
-				span_longitud_canula_actual.textContent = response.valor_canula_actual
-			})
-			.catch(error => {console.error('Error updating white spectra data:', error);})
-			
-		});
+            let enteredNumber = document.getElementById('numberInput').value;
+            let canula_distance_value = canula_distance_input.value;
+            if(!enteredNumber || !canula_distance_value || isNaN(enteredNumber) || isNaN(canula_distance_value)
+            || enteredNumber < 0.2 || canula_distance_value < 30){
+                    drawServerReceivedMessage("You must enter a correct value for the interval and distance", true);
+                    return;
+            } 
+            const data = [enteredNumber, canula_distance_value]
+            fetch('/save_time', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(response => {
+                drawServerReceivedMessage(response.filtered_data);
+                span_current_canula_length.textContent = response.current_canula_value
+            })
+            .catch(error => {console.error('Error updating white spectra data:', error);})
+            
+        });
 
-        function datosGPS_colores() {
+        function gpsDataColors() {
 
             var rect11 = document.getElementById("rect11");
 
@@ -885,8 +812,6 @@
 
             var rect61 = document.getElementById("rect61");
 
-
-
             var rect12 = document.getElementById("rect12");
 
             var rect22 = document.getElementById("rect22");
@@ -898,8 +823,6 @@
             var rect52 = document.getElementById("rect52");
 
             var rect62 = document.getElementById("rect62");
-
-
 
             var rect13 = document.getElementById("rect13");
 
@@ -913,297 +836,291 @@
 
             var rect63 = document.getElementById("rect63");
 
-
-
             fetch('/datosGPS')
 
             .then(response => response.json())
 
             .then(data => {
 
-                let error_latitud = data.error_N;
+                let error_latitude = data.error_N;
 
-                let error_longitud = data.error_E;
+                let error_longitude = data.error_E;
 
-                let error_altitud = data.error_U;
+                let error_altitude = data.error_U;
 
-                let valor_latitud = data.latitud;
+                let value_latitude = data.latitude;
 
-                let valor_longitud = data.altitud;
+                let value_longitude = data.longitude;
 
-                let valor_altitud = data.longitud;
+                let value_altitude = data.altitude;
                 
-                let fecha = data.fecha;
+                let date = data.date;
                 
-                let hora = data.hora;
+                let time = data.time;
 
-				updateDataElements(data);
+                updateDataElements(data);
 
+                if (data.error_N > margin1 && data.error_N <= margin2) {
 
+                    rect12.style.backgroundColor = dark_green; 
 
-                if (data.error_N > margen1 && data.error_N <= margen2) {
+                    rect22.style.backgroundColor = green;
 
-                    rect12.style.backgroundColor = verde_osc; 
+                    rect32.style.backgroundColor = light_green; 
 
-                    rect22.style.backgroundColor = verde;
+                    rect42.style.backgroundColor = yellow; 
 
-                    rect32.style.backgroundColor = verde_cl; 
+                    rect52.style.backgroundColor = orange; 
 
-                    rect42.style.backgroundColor = amarillo; 
+                    rect62.style.backgroundColor = red; 
 
-                    rect52.style.backgroundColor = naranja; 
+                } else if (data.error_N > margin2 && data.error_N <= margin3) {
 
-                    rect62.style.backgroundColor = rojo; 
+                    rect12.style.backgroundColor = white; 
 
-                } else if (data.error_N > margen2 && data.error_N <= margen3) {
+                    rect22.style.backgroundColor = green;
 
-                    rect12.style.backgroundColor = blanco; 
+                    rect32.style.backgroundColor = light_green; 
 
-                    rect22.style.backgroundColor = verde;
+                    rect42.style.backgroundColor = yellow; 
 
-                    rect32.style.backgroundColor = verde_cl; 
+                    rect52.style.backgroundColor = orange; 
 
-                    rect42.style.backgroundColor = amarillo; 
+                    rect62.style.backgroundColor = red; 
 
-                    rect52.style.backgroundColor = naranja; 
+                } else if (data.error_N > margin3 && data.error_N <= margin4) {
 
-                    rect62.style.backgroundColor = rojo; 
+                    rect12.style.backgroundColor = white; 
 
-                } else if (data.error_N > margen3 && data.error_N <= margen4) {
+                    rect22.style.backgroundColor = white;
 
-                    rect12.style.backgroundColor = blanco; 
+                    rect32.style.backgroundColor = light_green; 
 
-                    rect22.style.backgroundColor = blanco;
+                    rect42.style.backgroundColor = yellow; 
 
-                    rect32.style.backgroundColor = verde_cl; 
+                    rect52.style.backgroundColor = orange; 
 
-                    rect42.style.backgroundColor = amarillo; 
+                    rect62.style.backgroundColor = red; 
 
-                    rect52.style.backgroundColor = naranja; 
+                } else if (data.error_N > margin4 && data.error_N <= margin5) {
 
-                    rect62.style.backgroundColor = rojo; 
+                    rect12.style.backgroundColor = white; 
 
-                } else if (data.error_N > margen4 && data.error_N <= margen5) {
+                    rect22.style.backgroundColor = white;
 
-                    rect12.style.backgroundColor = blanco; 
+                    rect32.style.backgroundColor = white; 
 
-                    rect22.style.backgroundColor = blanco;
+                    rect42.style.backgroundColor = yellow; 
 
-                    rect32.style.backgroundColor = blanco; 
+                    rect52.style.backgroundColor = orange; 
 
-                    rect42.style.backgroundColor = amarillo; 
+                    rect62.style.backgroundColor = red; 
 
-                    rect52.style.backgroundColor = naranja; 
+                } else if (data.error_N > margin5 && data.error_N <= margin6) {
 
-                    rect62.style.backgroundColor = rojo; 
+                    rect12.style.backgroundColor = white; 
 
-                } else if (data.error_N > margen5 && data.error_N <= margen6) {
+                    rect22.style.backgroundColor = white;
 
-                    rect12.style.backgroundColor = blanco; 
+                    rect32.style.backgroundColor = white; 
 
-                    rect22.style.backgroundColor = blanco;
+                    rect42.style.backgroundColor = white; 
 
-                    rect32.style.backgroundColor = blanco; 
+                    rect52.style.backgroundColor = orange; 
 
-                    rect42.style.backgroundColor = blanco; 
-
-                    rect52.style.backgroundColor = naranja; 
-
-                    rect62.style.backgroundColor = rojo; 
+                    rect62.style.backgroundColor = red; 
 
                 } else {
 
-                    rect12.style.backgroundColor = blanco; 
+                    rect12.style.backgroundColor = white; 
 
-                    rect22.style.backgroundColor = blanco;
+                    rect22.style.backgroundColor = white;
 
-                    rect32.style.backgroundColor = blanco; 
+                    rect32.style.backgroundColor = white; 
 
-                    rect42.style.backgroundColor = blanco; 
+                    rect42.style.backgroundColor = white; 
 
-                    rect52.style.backgroundColor = blanco; 
+                    rect52.style.backgroundColor = white; 
 
-                    rect62.style.backgroundColor = rojo; 
+                    rect62.style.backgroundColor = red; 
 
                 }
 
-                if (data.error_E > margen1 && data.error_E <= margen2) {
+                if (data.error_E > margin1 && data.error_E <= margin2) {
 
-                    rect11.style.backgroundColor = verde_osc; 
+                    rect11.style.backgroundColor = dark_green; 
 
-                    rect21.style.backgroundColor = verde;
+                    rect21.style.backgroundColor = green;
 
-                    rect31.style.backgroundColor = verde_cl; 
+                    rect31.style.backgroundColor = light_green; 
 
-                    rect41.style.backgroundColor = amarillo; 
+                    rect41.style.backgroundColor = yellow; 
 
-                    rect51.style.backgroundColor = naranja; 
+                    rect51.style.backgroundColor = orange; 
 
-                    rect61.style.backgroundColor = rojo; 
+                    rect61.style.backgroundColor = red; 
 
-                } else if (data.error_E > margen2 && data.error_E <= margen3) {
+                } else if (data.error_E > margin2 && data.error_E <= margin3) {
 
-                    rect11.style.backgroundColor = blanco; 
+                    rect11.style.backgroundColor = white; 
 
-                    rect21.style.backgroundColor = verde;
+                    rect21.style.backgroundColor = green;
 
-                    rect31.style.backgroundColor = verde_cl; 
+                    rect31.style.backgroundColor = light_green; 
 
-                    rect41.style.backgroundColor = amarillo; 
+                    rect41.style.backgroundColor = yellow; 
 
-                    rect51.style.backgroundColor = naranja; 
+                    rect51.style.backgroundColor = orange; 
 
-                    rect61.style.backgroundColor = rojo; 
+                    rect61.style.backgroundColor = red; 
 
-                } else if (data.error_E > margen3 && data.error_E <= margen4) {
+                } else if (data.error_E > margin3 && data.error_E <= margin4) {
 
-                    rect11.style.backgroundColor = blanco; 
+                    rect11.style.backgroundColor = white; 
 
-                    rect21.style.backgroundColor = blanco;
+                    rect21.style.backgroundColor = white;
 
-                    rect31.style.backgroundColor = verde_cl; 
+                    rect31.style.backgroundColor = light_green; 
 
-                    rect41.style.backgroundColor = amarillo; 
+                    rect41.style.backgroundColor = yellow; 
 
-                    rect51.style.backgroundColor = naranja; 
+                    rect51.style.backgroundColor = orange; 
 
-                    rect61.style.backgroundColor = rojo; 
+                    rect61.style.backgroundColor = red; 
 
-                } else if (data.error_E > margen4 && data.error_E <= margen5) {
+                } else if (data.error_E > margin4 && data.error_E <= margin5) {
 
-                    rect11.style.backgroundColor = blanco; 
+                    rect11.style.backgroundColor = white; 
 
-                    rect21.style.backgroundColor = blanco;
+                    rect21.style.backgroundColor = white;
 
-                    rect31.style.backgroundColor = blanco; 
+                    rect31.style.backgroundColor = white; 
 
-                    rect41.style.backgroundColor = amarillo; 
+                    rect41.style.backgroundColor = yellow; 
 
-                    rect51.style.backgroundColor = naranja; 
+                    rect51.style.backgroundColor = orange; 
 
-                    rect61.style.backgroundColor = rojo; 
+                    rect61.style.backgroundColor = red; 
 
-                } else if (data.error_E > margen5 && data.error_E <= margen6) {
+                } else if (data.error_E > margin5 && data.error_E <= margin6) {
 
-                    rect11.style.backgroundColor = blanco; 
+                    rect11.style.backgroundColor = white; 
 
-                    rect21.style.backgroundColor = blanco;
+                    rect21.style.backgroundColor = white;
 
-                    rect31.style.backgroundColor = blanco; 
+                    rect31.style.backgroundColor = white; 
 
-                    rect41.style.backgroundColor = blanco; 
+                    rect41.style.backgroundColor = white; 
 
-                    rect51.style.backgroundColor = naranja; 
+                    rect51.style.backgroundColor = orange; 
 
-                    rect61.style.backgroundColor = rojo; 
+                    rect61.style.backgroundColor = red; 
 
                 } else {
 
-                    rect11.style.backgroundColor = blanco; 
+                    rect11.style.backgroundColor = white; 
 
-                    rect21.style.backgroundColor = blanco;
+                    rect21.style.backgroundColor = white;
 
-                    rect31.style.backgroundColor = blanco; 
+                    rect31.style.backgroundColor = white; 
 
-                    rect41.style.backgroundColor = blanco; 
+                    rect41.style.backgroundColor = white; 
 
-                    rect51.style.backgroundColor = blanco; 
+                    rect51.style.backgroundColor = white; 
 
-                    rect61.style.backgroundColor = rojo; 
+                    rect61.style.backgroundColor = red; 
 
                 }
 
-                if (data.error_U > margen1 && data.error_U <= margen2) {
+                if (data.error_U > margin1 && data.error_U <= margin2) {
 
-                    rect13.style.backgroundColor = verde_osc; 
+                    rect13.style.backgroundColor = dark_green; 
 
-                    rect23.style.backgroundColor = verde;
+                    rect23.style.backgroundColor = green;
 
-                    rect33.style.backgroundColor = verde_cl; 
+                    rect33.style.backgroundColor = light_green; 
 
-                    rect43.style.backgroundColor = amarillo; 
+                    rect43.style.backgroundColor = yellow; 
 
-                    rect53.style.backgroundColor = naranja; 
+                    rect53.style.backgroundColor = orange; 
 
-                    rect63.style.backgroundColor = rojo; 
+                    rect63.style.backgroundColor = red; 
 
-                } else if (data.error_U > margen2 && data.error_U <= margen3) {
+                } else if (data.error_U > margin2 && data.error_U <= margin3) {
 
-                    rect13.style.backgroundColor = blanco; 
+                    rect13.style.backgroundColor = white; 
 
-                    rect23.style.backgroundColor = verde;
+                    rect23.style.backgroundColor = green;
 
-                    rect33.style.backgroundColor = verde_cl; 
+                    rect33.style.backgroundColor = light_green; 
 
-                    rect43.style.backgroundColor = amarillo; 
+                    rect43.style.backgroundColor = yellow; 
 
-                    rect53.style.backgroundColor = naranja; 
+                    rect53.style.backgroundColor = orange; 
 
-                    rect63.style.backgroundColor = rojo; 
+                    rect63.style.backgroundColor = red; 
 
-                } else if (data.error_U > margen3 && data.error_U <= margen4) {
+                } else if (data.error_U > margin3 && data.error_U <= margin4) {
 
-                    rect13.style.backgroundColor = blanco; 
+                    rect13.style.backgroundColor = white; 
 
-                    rect23.style.backgroundColor = blanco;
+                    rect23.style.backgroundColor = white;
 
-                    rect33.style.backgroundColor = verde_cl; 
+                    rect33.style.backgroundColor = light_green; 
 
-                    rect43.style.backgroundColor = amarillo; 
+                    rect43.style.backgroundColor = yellow; 
 
-                    rect53.style.backgroundColor = naranja; 
+                    rect53.style.backgroundColor = orange; 
 
-                    rect63.style.backgroundColor = rojo; 
+                    rect63.style.backgroundColor = red; 
 
-                } else if (data.error_U > margen4 && data.error_U <= margen5) {
+                } else if (data.error_U > margin4 && data.error_U <= margin5) {
 
-                    rect13.style.backgroundColor = blanco; 
+                    rect13.style.backgroundColor = white; 
 
-                    rect23.style.backgroundColor = blanco;
+                    rect23.style.backgroundColor = white;
 
-                    rect33.style.backgroundColor = blanco; 
+                    rect33.style.backgroundColor = white; 
 
-                    rect43.style.backgroundColor = amarillo; 
+                    rect43.style.backgroundColor = yellow; 
 
-                    rect53.style.backgroundColor = naranja; 
+                    rect53.style.backgroundColor = orange; 
 
-                    rect63.style.backgroundColor = rojo; 
+                    rect63.style.backgroundColor = red; 
 
-                } else if (data.error_U > margen5 && data.error_U <= margen6) {
+                } else if (data.error_U > margin5 && data.error_U <= margin6) {
 
-                    rect13.style.backgroundColor = blanco; 
+                    rect13.style.backgroundColor = white; 
 
-                    rect23.style.backgroundColor = blanco;
+                    rect23.style.backgroundColor = white;
 
-                    rect33.style.backgroundColor = blanco; 
+                    rect33.style.backgroundColor = white; 
 
-                    rect43.style.backgroundColor = blanco; 
+                    rect43.style.backgroundColor = white; 
 
-                    rect53.style.backgroundColor = naranja; 
+                    rect53.style.backgroundColor = orange; 
 
-                    rect63.style.backgroundColor = rojo; 
+                    rect63.style.backgroundColor = red; 
 
                 } else {
 
-                    rect13.style.backgroundColor = blanco; 
+                    rect13.style.backgroundColor = white; 
 
-                    rect23.style.backgroundColor = blanco;
+                    rect23.style.backgroundColor = white;
 
-                    rect33.style.backgroundColor = blanco; 
+                    rect33.style.backgroundColor = white; 
 
-                    rect43.style.backgroundColor = blanco; 
+                    rect43.style.backgroundColor = white; 
 
-                    rect53.style.backgroundColor = blanco; 
+                    rect53.style.backgroundColor = white; 
 
-                    rect63.style.backgroundColor = rojo; 
+                    rect63.style.backgroundColor = red; 
 
                 }
 
             });
 
         }
-
-
 
         function updateColor() {
 
@@ -1225,10 +1142,6 @@
 
         }
 
-        
-
-        
-
         function validateRange() {
 
             var option1 = document.getElementById("option1");
@@ -1239,7 +1152,7 @@
 
             if (parseFloat(option1.value) > parseFloat(option2.value)) {
 
-                alert("Selecciona un rango vÃ¡lido");
+                alert("Select a valid range");
 
                 option1.selectedIndex = 0;
 
@@ -1255,21 +1168,15 @@
 
         }
 
-    
-
         function updateFilter() {
 
             event.preventDefault();
-
-    
 
             var option1 = document.getElementById('option1').value;
 
             var option2 = document.getElementById('option2').value;
 
             validateRange();
-
-    
 
             fetch('/filter', {
 
@@ -1293,7 +1200,7 @@
 
                 var filteredDataElement = document.getElementById('filtered-data');
                 
-                drawServerReceivedMessage('Rango de longitudes de onda actualizado');
+                drawServerReceivedMessage('Wavelength range updated');
 
             })
 
@@ -1307,141 +1214,130 @@
 
         $(document).ready(function() {
 
-			$('#checkbox-form').on('submit', function(event) {
+            $('#checkbox-form').on('submit', function(event) {
 
-				event.preventDefault();
+                event.preventDefault();
 
+                $.ajax({
 
+                    type: 'POST',
 
-				$.ajax({
+                    url: '/update_selected_variables',
 
-					type: 'POST',
+                    data: $(this).serialize(),
 
-					url: '/update_selected_variables',
+                    success: function(response) {
+                        console.log($(this).serialize());
+                        
+                        drawServerReceivedMessage(response.filtered_data);
 
-					data: $(this).serialize(),
+                    },
 
-					success: function(response) {
-						console.log($(this).serialize());
-						
-						drawServerReceivedMessage(response.filtered_data);
+                    error: function(xhr, status, error) {
 
-					},
+                        console.error(error);
 
-					error: function(xhr, status, error) {
+                    }
 
-						console.error(error);
+                });
 
-					}
+            });
 
-				});
+        });
 
-			});
+        $(document).ready(function() {
 
-		});
+            const $startRecording = $('#start-recording');
 
-		$(document).ready(function() {
+            function updateRecordingButtonText() {
 
-			const $startRecording = $('#start-recording');
+                fetch('/get_recording_status')
 
+                    .then(response => response.json())
 
+                    .then(data => {
 
-			function updateRecordingButtonText() {
+                        const isRecording = data.isRecording;
 
-				fetch('/get_recording_status')
+                        $startRecording.text(isRecording ? 'Pause Recording' : 'Start Recording');
 
-					.then(response => response.json())
+                        $startRecording.data('recording', isRecording);
+                                                
+                        if(isRecording){
+                            $startRecording.addClass("btn-danger");                            
+                        }else
+                            $startRecording.removeClass("btn-danger");                                    
+                    })
 
-					.then(data => {
+                    .catch(error => {
 
-						const isRecording = data.isRecording;
+                        console.error('Error:', error);
 
-						$startRecording.text(isRecording ? 'Pausar registro' : 'Iniciar registro');
+                    });
 
-						$startRecording.data('recording', isRecording);
-												
-						if(isRecording){
-							$startRecording.addClass("btn-danger");							
-						}else
-							$startRecording.removeClass("btn-danger");									
-					})
+            }
 
-					.catch(error => {
+            setInterval(updateRecordingButtonText, 500);
 
-						console.error('Error:', error);
+            $startRecording.on('click', function() {
 
-					});
+                let isRecording = $(this).data('recording');
 
-			}
+                $.ajax({
 
+                    type: 'POST',
 
+                    url: '/start_recording',
 
-			setInterval(updateRecordingButtonText, 500);
+                    contentType: 'application/json',
 
-			$startRecording.on('click', function() {
+                    data: JSON.stringify({ recording: !isRecording }),
 
-				let isRecording = $(this).data('recording');
+                    success: function(response) {
 
+                        console.log('Recording status changed');
 
+                        updateRecordingButtonText();
 
-				$.ajax({
+                    },
 
-					type: 'POST',
+                    error: function(xhr, status, error) {
 
-					url: '/start_recording',
+                        console.error('Error changing recording status:', error);
 
-					contentType: 'application/json',
+                    }
 
-					data: JSON.stringify({ recording: !isRecording }),
+                });
 
-					success: function(response) {
+            });
 
-						console.log('Recording status changed');
+        });
 
-						updateRecordingButtonText();
-
-					},
-
-					error: function(xhr, status, error) {
-
-						console.error('Error changing recording status:', error);
-
-					}
-
-				});
-
-			});
-
-		});
-
-        function actualizarDatosGuardados() {
-			fetch('/get-datos-actualizados')
-			.then(res    => res.json())
-			.then(response   => updateUIElementsContent(response))
-			.catch(error => console.error(error))
-
+        function updateSavedData() {
+            fetch('/get-updated-data')
+            .then(res => res.json())
+            .then(response => updateUIElementsContent(response))
+            .catch(error => console.error(error))
         }
-		
-		document.getElementById('clear-csv-btn').addEventListener('click',function(event){
-			fetch('/clearcsv',{method: 'POST'})
-			.then(res  => res.json())
-			.then(data => drawServerReceivedMessage(data.message))
-			.catch(error => console.error(error))
-		});
+        
+        document.getElementById('clear-csv-btn').addEventListener('click', function(event){
+            fetch('/clearcsv', {method: 'POST'})
+            .then(res  => res.json())
+            .then(data => drawServerReceivedMessage(data.message))
+            .catch(error => console.error(error))
+        });
 
-		setInterval(fetchAndUpdateSelectedFile, 700);
+        setInterval(fetchAndUpdateSelectedFile, 700);
 
-        setInterval(actualizarDatosGuardados, 700);
+        setInterval(updateSavedData, 700);
 
         setInterval(updateColor, 500);
 
-        setInterval(datosGPS_colores, 500);
-		
-    
-
-    window.onload = function() {
-		datosGPS_colores();
-	};
+        setInterval(gpsDataColors, 500);
+        
+        window.onload = function() {
+            gpsDataColors();
+        };
 
     </script>
 

@@ -8,7 +8,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Calculos</title>
+    <title>Calculations</title>
 
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
     
@@ -17,10 +17,9 @@
     <script src="/static/js/jquery-3.6.0.min.js"></script>
     
     <style>
-    .isInvalidInput{
-	  background-color: #ffdddd;
-	}
-    
+    .isInvalidInput {
+        background-color: #ffdddd;
+    }
     </style>
 </head>
 
@@ -28,136 +27,136 @@
 
     <div class="container mt-3">
 
-        <h1 class="text-center">Menu de calculos</h1>
+        <h1 class="text-center">Calculations Menu</h1>
 
     </div>
 
     <div class="container">
         <div class="row">
             <div class="col-lg-4">
-                <form id="numeroForm1" class="form-group p-3">
-					<div class="text-center">Valor actual: <span id="tiempo-integracion"></span></div>
-                    <input type="text" class="form-control" id="numeroInput1" aria-describedby="numeroHelp" placeholder="Milisegundos (100ms por defecto)">
-                    <small id="numeroHelp" class="form-text text-muted">Limites: [1.56 a 6000 ms]</small>
-                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                <form id="numberForm1" class="form-group p-3">
+                    <div class="text-center">Current value: <span id="integration-time"></span></div>
+                    <input type="text" class="form-control" id="numberInput1" aria-describedby="numberHelp" placeholder="Milliseconds (default 100ms)">
+                    <small id="numberHelp" class="form-text text-muted">Limits: [1.56 to 6000 ms]</small>
+                    <button type="submit" class="btn btn-primary">Update</button>
                 </form>
             </div>
             <div class="col-lg-4">
-                <form id="numeroForm2" class="form-group p-3">
-					<div class="text-center">Valor actual: <span id="average"></span></div>
-                    <input type="text" class="form-control" id="numeroInput2" aria-describedby="numeroHelp" placeholder="Escaneos para hacer la media">
-                    <small id="numeroHelp" class="form-text text-muted">Minimo: 1</small>
-                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                <form id="numberForm2" class="form-group p-3">
+                    <div class="text-center">Current value: <span id="average"></span></div>
+                    <input type="text" class="form-control" id="numberInput2" aria-describedby="numberHelp" placeholder="Scans to average">
+                    <small id="numberHelp" class="form-text text-muted">Minimum: 1</small>
+                    <button type="submit" class="btn btn-primary">Update</button>
                 </form>
             </div>
             <div class="col-lg-4">
-                <form id="numeroForm3" class="form-group p-3">
-					<div class="text-center">Valor actual: <span id="boxcar"></span></div>
-                    <input type="text" class="form-control" id="numeroInput3" aria-describedby="numeroHelp" placeholder="Pixeles del Boxcar para el filtro">
-                    <small id="numeroHelp" class="form-text text-muted">Minimo: 0</small>
-                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                <form id="numberForm3" class="form-group p-3">
+                    <div class="text-center">Current value: <span id="boxcar"></span></div>
+                    <input type="text" class="form-control" id="numberInput3" aria-describedby="numberHelp" placeholder="Boxcar pixels for filter">
+                    <small id="numberHelp" class="form-text text-muted">Minimum: 0</small>
+                    <button type="submit" class="btn btn-primary">Update</button>
                 </form>
             </div>
         </div>
     </div>
 
     <div id="graph" style="width:100%; height:500px;"></div>
-	<div id="graph2" style="width:100%; height:500px;"></div>
-	
+    <div id="graph2" style="width:100%; height:500px;"></div>
+    
     <p class="text-end">
-		<a href="/" class="btn btn-primary">Ir a configuracion</a>
-		<a href="/calibration" class="btn btn-primary">Ir a calibracion</a>
-	</p>
+        <a href="/" class="btn btn-primary">Go to Configuration</a>
+        <a href="/calibration" class="btn btn-primary">Go to Calibration</a>
+    </p>
 
     <script>
         let spectraDataUpdater;
 
         function startUpdatingSpectraData1() {
-			spectraDataUpdater = setInterval(() => {
-				$.ajax({
-					url: '/get_latest_spectra_data',
-					type: 'GET',
-					success: function(response) {
-						const spectraData = response;
-						
-						const wavelengthRange = spectraData.wavelength_range;
-						const spectra = spectraData.absorbance;
-						
-						updateGraph1(wavelengthRange, spectra);
-					},
-					error: function(error) {
-						console.error('Error al obtener los ultimos datos del espectro:', error);
-					}
-				});
-			}, 500);
-		}
+            spectraDataUpdater = setInterval(() => {
+                $.ajax({
+                    url: '/get_latest_spectra_data',
+                    type: 'GET',
+                    success: function(response) {
+                        const spectraData = response;
+                        
+                        const wavelengthRange = spectraData.wavelength_range;
+                        const spectra = spectraData.absorbance;
+                        
+                        updateGraph1(wavelengthRange, spectra);
+                    },
+                    error: function(error) {
+                        console.error('Error obtaining the latest spectra data:', error);
+                    }
+                });
+            }, 500);
+        }
 
-		function updateGraph1(wavelengthRange, spectra) {
-			const trace = {
-				x: wavelengthRange,
-				y: spectra,
-				type: 'scatter'
-			};
-			
-			const layout = {
-				title: 'Absorbancia',
-				xaxis: {
-					title: 'Longitudes de onda'
-				},
-				yaxis: {
-					title: 'Valor'
-				}
-			};
-			
-			Plotly.react('graph', [trace], layout);
-		}
+        function updateGraph1(wavelengthRange, spectra) {
+            const trace = {
+                x: wavelengthRange,
+                y: spectra,
+                type: 'scatter'
+            };
+            
+            const layout = {
+                title: 'Absorbance',
+                xaxis: {
+                    title: 'Wavelengths'
+                },
+                yaxis: {
+                    title: 'Value'
+                }
+            };
+            
+            Plotly.react('graph', [trace], layout);
+        }
 
-       function startUpdatingSpectraData2() {
-			spectraDataUpdater = setInterval(() => {
-				$.ajax({
-					url: '/get_latest_spectra_data',
-					type: 'GET',
-					success: function(response) {
-						const spectraData = response;
-						
-						const wavelengthRange = spectraData.wavelength_range;
-						const spectra = spectraData.reflectance;
-						
-						updateGraph2(wavelengthRange, spectra);
-					},
-					error: function(error) {
-						console.error('Error al obtener los ultimos datos del espectro:', error);
-					}
-				});
-			}, 500);
-		}
+        function startUpdatingSpectraData2() {
+            spectraDataUpdater = setInterval(() => {
+                $.ajax({
+                    url: '/get_latest_spectra_data',
+                    type: 'GET',
+                    success: function(response) {
+                        const spectraData = response;
+                        
+                        const wavelengthRange = spectraData.wavelength_range;
+                        const spectra = spectraData.reflectance;
+                        
+                        updateGraph2(wavelengthRange, spectra);
+                    },
+                    error: function(error) {
+                        console.error('Error obtaining the latest spectra data:', error);
+                    }
+                });
+            }, 500);
+        }
 
-		function updateGraph2(wavelengthRange, spectra) {
-			const trace = {
-				x: wavelengthRange,
-				y: spectra,
-				type: 'scatter'
-			};
-			
-			const layout = {
-				title: 'Reflectancia',
-				xaxis: {
-					title: 'Longitudes de onda'
-				},
-				yaxis: {
-					title: 'Valor'
-				}
-			};
-			
-			Plotly.react('graph2', [trace], layout);
-		}
-		
-		function actualizarDatosGuardadosCal() {
+        function updateGraph2(wavelengthRange, spectra) {
+            const trace = {
+                x: wavelengthRange,
+                y: spectra,
+                type: 'scatter'
+            };
+            
+            const layout = {
+                title: 'Reflectance',
+                xaxis: {
+                    title: 'Wavelengths'
+                },
+                yaxis: {
+                    title: 'Value'
+                }
+            };
+            
+            Plotly.react('graph2', [trace], layout);
+        }
+        
+        function updateSavedDataCal() {
             $.ajax({
-                url: '/get-datos-actualizados-cal',
+                url: '/get-updated-data-cal',
                 type: 'GET',
                 success: function(response) {
-                    $('#tiempo-integracion').text(response.tiempoIntegracion);
+                    $('#integration-time').text(response.integrationTime);
                     $('#boxcar').text(response.BoxcarWidth);
                     $('#average').text(response.AverageScans);
                     
@@ -168,40 +167,39 @@
             });
         }
         
-		function isValidNumber(input_value){
-			if(!input_value || isNaN(input_value)){
-				return false
-			}
-			return true
-		}
+        function isValidNumber(input_value){
+            if(!input_value || isNaN(input_value)){
+                return false;
+            }
+            return true;
+        }
 
-
-        function modifyInvalidClass(input_element,add = true){
-			if(add){
-				input_element.classList.add("isInvalidInput");
-				return;
-			}				
-			input_element.classList.remove("isInvalidInput");
-		}        
+        function modifyInvalidClass(input_element, add = true){
+            if(add){
+                input_element.classList.add("isInvalidInput");
+                return;
+            }                
+            input_element.classList.remove("isInvalidInput");
+        }        
         
-        document.getElementById('numeroForm1').addEventListener('submit', function(event) {
+        document.getElementById('numberForm1').addEventListener('submit', function(event) {
             event.preventDefault(); 
-            const input1 = document.getElementById('numeroInput1');
-            let numeroIntroducido1 = input1.value;
-            if(!isValidNumber(numeroIntroducido1) || numeroIntroducido1 < 1.56 || numeroIntroducido1 > 6000){
-				console.log("NO es un numero valido ");
-				modifyInvalidClass(input1);
-				return ;
-			}
+            const input1 = document.getElementById('numberInput1');
+            let enteredNumber1 = input1.value;
+            if(!isValidNumber(enteredNumber1) || enteredNumber1 < 1.56 || enteredNumber1 > 6000){
+                console.log("Invalid number");
+                modifyInvalidClass(input1);
+                return;
+            }
             $.ajax({
                 url: '/new_integration_time',
                 type: 'POST',
-                data: JSON.stringify(numeroIntroducido1),
+                data: JSON.stringify(enteredNumber1),
                 contentType: 'application/json',
                 success: function(response) {
-                    console.log(numeroIntroducido1);
+                    console.log(enteredNumber1);
                     console.log('Integration time updated');
-                    modifyInvalidClass(input1,false);
+                    modifyInvalidClass(input1, false);
                 },
                 error: function(error) {
                     console.error('Error updating white spectra data:', error);
@@ -209,23 +207,23 @@
             })
         });
         
-        document.getElementById('numeroForm2').addEventListener('submit', function(event) {
+        document.getElementById('numberForm2').addEventListener('submit', function(event) {
             event.preventDefault(); 
-            const input2 = document.getElementById('numeroInput2');
-            let numeroIntroducido2 = input2.value;
-            if(!isValidNumber(numeroIntroducido2) || numeroIntroducido2 < 1){
-				console.log("NO es un numero valido ");
-				modifyInvalidClass(input2);
-				return ;
-			}
+            const input2 = document.getElementById('numberInput2');
+            let enteredNumber2 = input2.value;
+            if(!isValidNumber(enteredNumber2) || enteredNumber2 < 1){
+                console.log("Invalid number");
+                modifyInvalidClass(input2);
+                return;
+            }
             $.ajax({
                 url: '/new_average',
                 type: 'POST',
-                data: JSON.stringify(numeroIntroducido2),
+                data: JSON.stringify(enteredNumber2),
                 contentType: 'application/json',
                 success: function(response) {
-                    console.log(numeroIntroducido2);
-                    modifyInvalidClass(input2,false);
+                    console.log(enteredNumber2);
+                    modifyInvalidClass(input2, false);
                     console.log('Average scans updated');
                 },
                 error: function(error) {
@@ -234,23 +232,23 @@
             })
         });
         
-        document.getElementById('numeroForm3').addEventListener('submit', function(event) {
+        document.getElementById('numberForm3').addEventListener('submit', function(event) {
             event.preventDefault(); 
-            const input3 = document.getElementById('numeroInput3');
-            let numeroIntroducido3 = input3.value;
-            if(!isValidNumber(numeroIntroducido3) || numeroIntroducido3 < 0){
-				console.log("NO es un numero valido ");
-				modifyInvalidClass(input3);
-				return ;
-			}
+            const input3 = document.getElementById('numberInput3');
+            let enteredNumber3 = input3.value;
+            if(!isValidNumber(enteredNumber3) || enteredNumber3 < 0){
+                console.log("Invalid number");
+                modifyInvalidClass(input3);
+                return;
+            }
             $.ajax({
                 url: '/new_boxcar',
                 type: 'POST',
-                data: JSON.stringify(numeroIntroducido3),
+                data: JSON.stringify(enteredNumber3),
                 contentType: 'application/json',
                 success: function(response) {
-                    console.log(numeroIntroducido3);
-                    modifyInvalidClass(input3,false);
+                    console.log(enteredNumber3);
+                    modifyInvalidClass(input3, false);
                     console.log('Boxcar width updated');
                 },
                 error: function(error) {
@@ -258,11 +256,11 @@
                 }
             })
         });
-		setInterval(actualizarDatosGuardadosCal, 500);
+        setInterval(updateSavedDataCal, 500);
         window.onload = function() {
-			startUpdatingSpectraData1();
-			startUpdatingSpectraData2();
-		};
+            startUpdatingSpectraData1();
+            startUpdatingSpectraData2();
+        };
     </script>
 </body>
 </html>
